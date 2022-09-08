@@ -1,0 +1,118 @@
+﻿<slascone_license_file xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+	<modified_date_utc>2022-01-29T13:09:43.3907623Z</modified_date_utc>
+	<customer>
+		<customer_id>e9105738-8459-4c05-b704-00f64bfe98f5</customer_id>
+		<company_name>A Feugiat LLC</company_name>
+		<customer_number>40118</customer_number>
+	</customer>
+	<license_name>New License</license_name>
+	<license_key>0efce21f-c6bb-4a68-b65e-c3cdfdded42c</license_key>
+	<legacy_license_key>65597 26729 01120 49725 16644</legacy_license_key>
+	<product_name>BI Server</product_name>
+	<product_id>47df1df5-bbc8-4b1b-a185-58ddfb1d3271</product_id>
+	<template_name>Silver Edition</template_name>
+	<provisioning_mode>0</provisioning_mode>
+	<floating_tokens xsi:nil="true" />
+	<user_limits xsi:nil="true" />
+	<expiration_date_utc>2024-01-01T00:00:00Z</expiration_date_utc>
+	<is_temporary>false</is_temporary>
+	<software_release_limitation>
+		<id>68257b69-3de4-42bd-9378-9cad7ef83b0a</id>
+		<product_id>47df1df5-bbc8-4b1b-a185-58ddfb1d3271</product_id>
+		<software_release>23</software_release>
+		<description />
+	</software_release_limitation>
+	<session_period xsi:nil="true" />
+	<heartbeat_period xsi:nil="true" />
+	<freeride xsi:nil="true" />
+	<features>
+		<id>49fa83fd-e6cc-4d57-94c2-5535d132bf80</id>
+		<name>Semantic Zoom</name>
+		<description>TBD</description>
+		<is_active>true</is_active>
+	</features>
+	<features>
+		<id>03fc55e6-51de-4bd4-bef3-55ef65393245</id>
+		<name>Scheduled Report Distribution</name>
+		<description xsi:nil="true" />
+		<is_active>true</is_active>
+	</features>
+	<features>
+		<id>48be7014-afe8-420a-99a8-66d4fa2c9e86</id>
+		<name>Drill-Through</name>
+		<description xsi:nil="true" />
+		<is_active>true</is_active>
+	</features>
+	<features>
+		<id>f8c31e99-778a-4537-a6f9-6fbe87c085b1</id>
+		<name>Project</name>
+		<description xsi:nil="true" />
+		<is_active>true</is_active>
+	</features>
+	<features>
+		<id>7b5f123c-a6cb-4292-8554-9581f9728e8c</id>
+		<name>Print</name>
+		<description xsi:nil="true" />
+		<is_active>true</is_active>
+	</features>
+	<features>
+		<id>d277c8d7-fac5-4c0e-882c-ad64a510d869</id>
+		<name>Commenting</name>
+		<description>Component</description>
+		<is_active>true</is_active>
+	</features>
+	<features>
+		<id>c0f282a5-f6c2-45fe-a5a6-ad715332825f</id>
+		<name>Orders</name>
+		<description xsi:nil="true" />
+		<is_active>true</is_active>
+	</features>
+	<features>
+		<id>cb112265-b800-485c-b152-afdcababc1ad</id>
+		<name>PDF-Forms</name>
+		<description>Component</description>
+		<is_active>true</is_active>
+	</features>
+	<features>
+		<id>8f2fa738-3e5c-4b5e-af1a-b238136ca54d</id>
+		<name>Powerpoint Export</name>
+		<description xsi:nil="true" />
+		<is_active>true</is_active>
+	</features>
+	<features>
+		<id>5d1a3c60-037e-4468-b3e2-effd48a4d9a5</id>
+		<name>Documentss</name>
+		<description xsi:nil="true" />
+		<is_active>true</is_active>
+	</features>
+	<limitations>
+		<id>76d439f1-2a45-4606-aeb3-48325f204ff3</id>
+		<name>Print Jobs</name>
+		<description />
+		<value>1500</value>
+		<consumption_reset_mode>1</consumption_reset_mode>
+		<consumption_reset_period_days xsi:nil="true" />
+	</limitations>
+	<limitations>
+		<id>80cff8df-6724-488d-a680-e00c9aaa3c11</id>
+		<name>Catalogs</name>
+		<description />
+		<value>200</value>
+		<consumption_reset_mode>3</consumption_reset_mode>
+		<consumption_reset_period_days xsi:nil="true" />
+	</limitations>
+	<Signature xmlns="http://www.w3.org/2000/09/xmldsig#">
+		<SignedInfo>
+			<CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" />
+			<SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256" />
+			<Reference URI="">
+				<Transforms>
+					<Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" />
+				</Transforms>
+				<DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256" />
+				<DigestValue>kdbmEF28CiVe+et/S7i+i9+1Jzb6itkRFeKAWtwvMwA=</DigestValue>
+			</Reference>
+		</SignedInfo>
+		<SignatureValue>DAPnQe2qoryPjO9kv3XLBaVFzGarGfQ0R1u4Gv3rvYFGREx4FE9vm/1KbIJ9eGc7cwZIS+j0LoYq5WXPr6wL+ptUH+uqRj7jFJbtYjQTlrBuwfj6WZu9yeWJmwY0q6v2k7f8Azi/R1c/LB0CiQDz2vuzoVytkCHHG61Xps9KaI7dQnwb5DP31/pJr03gV2wP0ms9wEIeR/iH4Qjq5/1KE1U+dZUXqtmxwunFthEklW91L3y+5CVk+pUcQ9LTJZjj2uKQxtvDcBmyqgE1HIRTTVs0Duc+hOc3hYTRPzOP0AR7EP514uX/o9Ch/uDtVvpEOQVsVgww3cdJlq29UZtTIg==</SignatureValue>
+	</Signature>
+</slascone_license_file>

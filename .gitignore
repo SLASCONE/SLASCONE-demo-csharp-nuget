@@ -1,0 +1,8 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/Slascone.Provisioning.Sample.NuGet/Slascone.Provisioning.Sample.NuGet/obj
+/Slascone.Provisioning.Sample.NuGet/.vs/Slascone.Provisioning.Sample.NuGet/DesignTimeBuild/.dtbcache.v2
+/Slascone.Provisioning.Sample.NuGet/.vs/Slascone.Provisioning.Sample.NuGet/v17/.suo
+/Slascone.Provisioning.Sample.NuGet/Slascone.Provisioning.Sample.NuGet/bin/Debug/net6.0
