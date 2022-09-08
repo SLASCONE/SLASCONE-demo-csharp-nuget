@@ -41,9 +41,9 @@ public class UseCaseActivateLicense : IUseCaseActivateLicense
 
             return response;
         }
-        catch(ApiException<ActivateLicenseResponseErrors> ex)
+        catch (ApiException<ActivateLicenseResponseErrors> ex)
         {
-            if(ex.Result.Errors == null)
+            if (ex.Result.Errors == null)
             {
                 Console.WriteLine(ex.Message);
             }
@@ -78,7 +78,7 @@ public class UseCaseActivateLicense : IUseCaseActivateLicense
             Console.WriteLine(ex.Result.Errors);
             throw;
         }
-        catch(ApiException ex)
+        catch (ApiException ex)
         {
             Console.WriteLine($"{ex.StatusCode}: ex.Response");
             throw;

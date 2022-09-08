@@ -28,7 +28,7 @@ internal class Program
             // ToDo: Uncomment specific scenario
             //await FloatingLicensingSample(activatedLicense);
             //await HeartbeatSample(activatedLicense);
-            //await LicenseFileSample("XX/LicenseSample.xml");
+            //LicenseFileSample("XX/LicenseSample.xml");
         }
         catch (Exception)
         {
@@ -172,6 +172,16 @@ internal class Program
 
         var remainingConsumptions = await useCaseHeartbeat.GetConsumptionStatusAsync(new ValidateConsumptionStatusDto
         { Limitation_id = Guid.Parse(""), Client_id = Helper.GetWindowsUniqueDeviceId() });
+    }
+
+    private static bool LicenseFileSample(string licenseFile)
+    {
+        //Signature Validation of Offline License XML
+        XmlDocument xmlDoc = new XmlDocument();
+        //Load an XML file into the XmlDocument object.
+        xmlDoc.PreserveWhitespace = true;
+        xmlDoc.Load(licenseFile);
+        return Helper.IsFileSignatureValid(xmlDoc);
     }
 }
 

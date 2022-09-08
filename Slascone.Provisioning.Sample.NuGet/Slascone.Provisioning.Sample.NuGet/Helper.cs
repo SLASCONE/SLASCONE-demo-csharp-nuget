@@ -49,4 +49,44 @@ public class Helper
     {
         return RuntimeInformation.OSDescription;
     }
+
+    /// <summary>
+    /// Validates the authority by signature with an asymmetric key
+    /// </summary>
+    /// <returns>True if Signature is valid. False if Signature is invalid.</returns>
+    public static bool IsFileSignatureValid(XmlDocument licenseXml)
+    {
+        byte[] rawData = ReadFile(Certificate);
+        // Load the certificate into an X509Certificate object.
+        var signatureKeyCert = new X509Certificate2(rawData);
+
+        using (RSA rsa = signatureKeyCert.GetRSAPublicKey())
+        {
+            SignedXml signedXml = new SignedXml(licenseXml);
+            XmlNodeList nodeList = licenseXml.GetElementsByTagName("Signature");
+
+            signedXml.LoadXml((XmlElement)nodeList[0]);
+            if (signedXml.CheckSignature(rsa))
+            {
+                return true;
+            }
+            return false;
+        }
+    }
+
+
+    /// <summary>
+    /// Read a File
+    /// </summary>
+    /// <param name="fileName">file name</param>
+    /// <returns></returns>
+    private static byte[] ReadFile(string fileName)
+    {
+        FileStream f = new FileStream(fileName, FileMode.Open, FileAccess.Read);
+        int size = (int)f.Length;
+        byte[] data = new byte[size];
+        size = f.Read(data, 0, size);
+        f.Close();
+        return data;
+    }
 }

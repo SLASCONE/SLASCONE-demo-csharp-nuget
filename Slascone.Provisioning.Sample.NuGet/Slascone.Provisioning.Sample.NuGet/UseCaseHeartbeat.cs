@@ -106,7 +106,7 @@ public class UseCaseHeartbeat : IUseCaseHeartbeat
             throw;
         }
     }
-    
+
     /// <summary>
     /// Creates a usage heartbeat
     /// </summary>
