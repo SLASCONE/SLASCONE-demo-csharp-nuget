@@ -25,6 +25,9 @@ internal class Program
                 Console.WriteLine("Successfully activated license.");
             }
 
+            /*If the activated licensed failed, the api server responses with a specific error message which describes the problem.
+                You can verify the error messages in Use Cases that throw specific exception.*/
+
             // ToDo: Uncomment specific scenario
             //await FloatingLicensingSample(activatedLicense);
             //await HeartbeatSample(activatedLicense);
@@ -57,7 +60,7 @@ internal class Program
         var heartbeatResult = await useCaseHeartbeat.AddHeartbeatAsync(heartbeatDto);
 
         /*If the heartbeat failed, the api server responses with a specific error message which describes the problem.
-          You can verify the error messages in Use Cases that thros specific exception.*/
+          You can verify the error messages in Use Cases that throw specific exception.*/
 
         // After successfully generating a heartbeat the client have to check provisioning mode of the license. Is it floating a session has to be opened.
         if (heartbeatResult != null && heartbeatResult.Provisioning_mode == ProvisioningMode.Floating)
@@ -72,7 +75,7 @@ internal class Program
             var openSessionResult = await useCaseFloatingLicense.OpenSessionAsync(sessionDto);
 
             /*If the heartbeat failed, the api server responses with a specific error message which describes the problem.
-             You can verify the error messages in Use Cases that thros specific exception.*/
+             You can verify the error messages in Use Cases that throw specific exception.*/
 
             if (openSessionResult != null)
             {
@@ -111,7 +114,7 @@ internal class Program
         }
 
         /*If the heartbeat failed, the api server responses with a specific error message which describes the problem.
-          You can verify the error messages in Use Cases.*/
+          You can verify the error messages in Use Cases that throw specific exception.*/
 
         // ToDo: Fill the variables
         var analyticalHb = new AnalyticalHeartbeatDto();
