@@ -1,4 +1,6 @@
-﻿namespace Slascone.Provisioning.Sample.NuGet;
+﻿using Slascone.Client;
+
+namespace Slascone.Provisioning.Sample.NuGet;
 
 public interface IUseCaseActivateLicense
 {
@@ -6,13 +8,13 @@ public interface IUseCaseActivateLicense
     /// Activates a License
     /// </summary>
     /// <returns>ProvisioningInfo where LicenseInfoDto or WarningInfoDto is set.</returns>
-    Task<LicenseInfoDto> ActivateLicenseAsync(ActivateClientDto activateClientDto);
+    Task<ApiResponse<LicenseInfoDto>> ActivateLicenseAsync(ActivateClientDto activateClientDto);
 
     /// <summary>
     /// Unassign a activated license.
     /// </summary>
     /// <returns>"Successfully deactivated License." or a WarningInfoDto</returns>
-    Task<string> UnassignAsync(UnassignDto unassignDto);
+    Task<ApiResponse<string>> UnassignAsync(UnassignDto unassignDto);
 }
 
 public class UseCaseActivateLicense : IUseCaseActivateLicense
@@ -33,55 +35,51 @@ public class UseCaseActivateLicense : IUseCaseActivateLicense
     /// Activates a License
     /// </summary>
     /// <returns>ProvisioningInfo where LicenseInfoDto or WarningInfoDto is set.</returns>
-    public async Task<LicenseInfoDto> ActivateLicenseAsync(ActivateClientDto activateClientDto)
+    public async Task<ApiResponse<LicenseInfoDto>> ActivateLicenseAsync(ActivateClientDto activateClientDto)
     {
+        var  response = new ApiResponse<LicenseInfoDto>();
         try
         {
-            var response = await _slasconeClientV2.ActivateLicenseAsync(activateClientDto);
-
-            return response;
+            response.Result = await _slasconeClientV2.ActivateLicenseAsync(activateClientDto);
         }
         catch (ApiException<ActivateLicenseResponseErrors> ex)
         {
-            if (ex.Result.Errors == null)
-            {
-                Console.WriteLine(ex.Message);
-            }
-            Console.WriteLine(ex.Result.Errors);
-            throw;
+            response.Errors = ex.Result.Errors;
+            response.StatusCode = ex.StatusCode.ToString();
+            response.Message = ex.Message;
         }
         catch (ApiException ex)
         {
-            Console.WriteLine($"{ex.StatusCode}: ex.Response");
-            throw;
+            response.StatusCode = ex.StatusCode.ToString();
+            response.Message = ex.Message;
         }
+
+        return response;
     }
 
     /// <summary>
     /// Unassign a activated license.
     /// </summary>
     /// <returns>"Successfully deactivated License." or a WarningInfoDto</returns>
-    public async Task<string> UnassignAsync(UnassignDto unassignDto)
+    public async Task<ApiResponse<string>> UnassignAsync(UnassignDto unassignDto)
     {
+        var response = new ApiResponse<string>();
         try
         {
-            var response = await _slasconeClientV2.UnassignLicenseAsync(unassignDto);
-
-            return response;
+            response.Result = await _slasconeClientV2.UnassignLicenseAsync(unassignDto);        
         }
         catch (ApiException<DeactivateDeviceLicenseResponseError> ex)
         {
-            if (ex.Result.Errors == null)
-            {
-                Console.WriteLine(ex.Message);
-            }
-            Console.WriteLine(ex.Result.Errors);
-            throw;
+            response.Errors = ex.Result.Errors;
+            response.StatusCode = ex.StatusCode.ToString();
+            response.Message = ex.Message;
         }
         catch (ApiException ex)
         {
-            Console.WriteLine($"{ex.StatusCode}: ex.Response");
-            throw;
+            response.StatusCode = ex.StatusCode.ToString();
+            response.Message = ex.Message;
         }
+
+        return response;
     }
 }

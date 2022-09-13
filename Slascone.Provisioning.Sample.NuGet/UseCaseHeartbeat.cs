@@ -1,4 +1,6 @@
-﻿namespace Slascone.Provisioning.Sample.NuGet;
+﻿using Slascone.Client;
+
+namespace Slascone.Provisioning.Sample.NuGet;
 
 public interface IUseCaseHeartbeat
 {
@@ -6,34 +8,34 @@ public interface IUseCaseHeartbeat
     /// Creates a heartbeat Response is either a LicenseInfoDto or a WarningInfoDto
     /// </summary>
     /// <returns>ProvisioningInfo where LicenseInfoDto or WarningInfoDto is set.</returns>
-    Task<LicenseInfoDto> AddHeartbeatAsync(AddHeartbeatDto heartbeatDto);
+    Task<ApiResponse<LicenseInfoDto>> AddHeartbeatAsync(AddHeartbeatDto heartbeatDto);
 
     /// <summary>
     /// Creates a analytical heartbeat
     /// </summary>
     /// <param name="analyticalHeartbeat">Is the object which contains all analytical Heartbeat Information.</param>
     /// <returns>"Successfully created analytical heartbeat." or a WarningInfoDto</returns>
-    Task<string> AddAnalyticalHeartbeatAsync(AnalyticalHeartbeatDto analyticalHeartbeat);
+    Task<ApiResponse<string>> AddAnalyticalHeartbeatAsync(AnalyticalHeartbeatDto analyticalHeartbeat);
 
     /// <summary>
     /// Creates a usage heartbeat
     /// </summary>
     /// <param name="usageHeartbeatDto">Is the object which contains all usage Heartbeat Information.</param>
     /// <returns>"Successfully created usage heartbeat." or a WarningInfoDto</returns>
-    Task<string> AddUsageHeartbeatAsync(FullUsageHeartbeatDto usageHeartbeatDto);
+    Task<ApiResponse<string>> AddUsageHeartbeatAsync(FullUsageHeartbeatDto usageHeartbeatDto);
 
     /// <summary>
     /// Creates a consumption heartbeat
     /// </summary>
     /// <param name="consumptionHeartbeatDtoDto">Is the object which contains all consumption Heartbeat Information.</param>
     /// <returns>"Successfully created consumption heartbeat." or a WarningInfoDto</returns>
-    Task<ICollection<ConsumptionDto>> AddConsumptionHeartbeatAsync(FullConsumptionHeartbeatDto consumptionHeartbeatDto);
+    Task<ApiResponse<ICollection<ConsumptionDto>>> AddConsumptionHeartbeatAsync(FullConsumptionHeartbeatDto consumptionHeartbeatDto);
 
     /// <summary>
     /// Get the consumption status of an limitation per assignment
     /// </summary>
     /// <returns>Remaining Consumption Value</returns>
-    Task<ConsumptionDto> GetConsumptionStatusAsync(ValidateConsumptionStatusDto validateConsumptionDto);
+    Task<ApiResponse<ConsumptionDto>> GetConsumptionStatusAsync(ValidateConsumptionStatusDto validateConsumptionDto);
 }
 
 public class UseCaseHeartbeat : IUseCaseHeartbeat
@@ -54,28 +56,26 @@ public class UseCaseHeartbeat : IUseCaseHeartbeat
     /// Creates a heartbeat Response is either a LicenseInfoDto or a WarningInfoDto
     /// </summary>
     /// <returns>ProvisioningInfo where LicenseInfoDto or WarningInfoDto is set.</returns>
-    public async Task<LicenseInfoDto> AddHeartbeatAsync(AddHeartbeatDto heartbeatDto)
+    public async Task<ApiResponse<LicenseInfoDto>> AddHeartbeatAsync(AddHeartbeatDto heartbeatDto)
     {
+        var response = new ApiResponse<LicenseInfoDto>();
         try
         {
-            var response = await _slasconeClientV2.AddHeartbeatAsync(heartbeatDto);
-
-            return response;
+            response.Result = await _slasconeClientV2.AddHeartbeatAsync(heartbeatDto);       
         }
         catch (ApiException<HeartbeatResponseErrors> ex)
         {
-            if (ex.Result.Errors == null)
-            {
-                Console.WriteLine(ex.Message);
-            }
-            Console.WriteLine(ex.Result.Errors);
-            throw;
+            response.Errors = ex.Result.Errors;
+            response.StatusCode = ex.StatusCode.ToString();
+            response.Message = ex.Message;
         }
         catch (ApiException ex)
         {
-            Console.WriteLine($"{ex.StatusCode}: ex.Response");
-            throw;
+            response.StatusCode = ex.StatusCode.ToString();
+            response.Message = ex.Message;
         }
+
+        return response;
     }
 
     /// <summary>
@@ -83,28 +83,26 @@ public class UseCaseHeartbeat : IUseCaseHeartbeat
     /// </summary>
     /// <param name="analyticalHeartbeat">Is the object which contains all analytical Heartbeat Information.</param>
     /// <returns>"Successfully created analytical heartbeat." or a WarningInfoDto</returns>
-    public async Task<string> AddAnalyticalHeartbeatAsync(AnalyticalHeartbeatDto analyticalHeartbeat)
+    public async Task<ApiResponse<string>> AddAnalyticalHeartbeatAsync(AnalyticalHeartbeatDto analyticalHeartbeat)
     {
+        var response = new ApiResponse<string>();
         try
         {
-            var response = await _slasconeClientV2.AddAnalyticalHeartbeatAsync(analyticalHeartbeat);
-
-            return response;
+            response.Result = await _slasconeClientV2.AddAnalyticalHeartbeatAsync(analyticalHeartbeat);
         }
         catch (ApiException<AnalyticalHeartbeatResponseErrors> ex)
         {
-            if (ex.Result.Errors == null)
-            {
-                Console.WriteLine(ex.Message);
-            }
-            Console.WriteLine(ex.Result.Errors);
-            throw;
+            response.Errors = ex.Result.Errors;
+            response.StatusCode = ex.StatusCode.ToString();
+            response.Message = ex.Message;
         }
         catch (ApiException ex)
         {
-            Console.WriteLine($"{ex.StatusCode}: ex.Response");
-            throw;
+            response.StatusCode = ex.StatusCode.ToString();
+            response.Message = ex.Message;
         }
+
+        return response;
     }
 
     /// <summary>
@@ -112,28 +110,25 @@ public class UseCaseHeartbeat : IUseCaseHeartbeat
     /// </summary>
     /// <param name="usageHeartbeatDto">Is the object which contains all usage Heartbeat Information.</param>
     /// <returns>"Successfully created usage heartbeat." or a WarningInfoDto</returns>
-    public async Task<string> AddUsageHeartbeatAsync(FullUsageHeartbeatDto usageHeartbeatDto)
+    public async Task<ApiResponse<string>> AddUsageHeartbeatAsync(FullUsageHeartbeatDto usageHeartbeatDto)
     {
+        var response = new ApiResponse<string>();
         try
         {
-            var response = await _slasconeClientV2.AddUsageHeartbeatAsync(usageHeartbeatDto);
-
-            return response;
+            response.Result = await _slasconeClientV2.AddUsageHeartbeatAsync(usageHeartbeatDto);          
         }
         catch (ApiException<UsageHeartbeatResponseErrors> ex)
         {
-            if (ex.Result.Errors == null)
-            {
-                Console.WriteLine(ex.Message);
-            }
-            Console.WriteLine(ex.Result.Errors);
-            throw;
+            response.Errors = ex.Result.Errors;
+            response.StatusCode = ex.StatusCode.ToString();
+            response.Message = ex.Message;
         }
         catch (ApiException ex)
         {
-            Console.WriteLine($"{ex.StatusCode}: ex.Response");
-            throw;
+            response.StatusCode = ex.StatusCode.ToString();
+            response.Message = ex.Message;
         }
+        return response;
     }
 
     /// <summary>
@@ -141,46 +136,46 @@ public class UseCaseHeartbeat : IUseCaseHeartbeat
     /// </summary>
     /// <param name="consumptionHeartbeatDtoDto">Is the object which contains all consumption Heartbeat Information.</param>
     /// <returns>"Successfully created consumption heartbeat." or a WarningInfoDto</returns>
-    public async Task<ICollection<ConsumptionDto>> AddConsumptionHeartbeatAsync(FullConsumptionHeartbeatDto consumptionHeartbeatDto)
+    public async Task<ApiResponse<ICollection<ConsumptionDto>>> AddConsumptionHeartbeatAsync(FullConsumptionHeartbeatDto consumptionHeartbeatDto)
     {
+        var response = new ApiResponse<ICollection<ConsumptionDto>>();
         try
         {
-            var response = await _slasconeClientV2.AddConsumptionHeartbeatAsync(consumptionHeartbeatDto);
-
-            return response;
+            response.Result = await _slasconeClientV2.AddConsumptionHeartbeatAsync(consumptionHeartbeatDto);        
         }
         catch (ApiException ex)
         {
-            Console.WriteLine($"{ex.StatusCode}: ex.Response");
-            throw;
+            response.StatusCode = ex.StatusCode.ToString();
+            response.Message = ex.Message;
         }
+
+        return response;
     }
 
     /// <summary>
     /// Get the consumption status of an limitation per assignment
     /// </summary>
     /// <returns>Remaining Consumption Value</returns>
-    public async Task<ConsumptionDto> GetConsumptionStatusAsync(ValidateConsumptionStatusDto validateConsumptionDto)
+    public async Task<ApiResponse<ConsumptionDto>> GetConsumptionStatusAsync(ValidateConsumptionStatusDto validateConsumptionDto)
     {
+        var response = new ApiResponse<ConsumptionDto>();
         try
         {
-            var response = await _slasconeClientV2.GetConsumptionStatusAsync(validateConsumptionDto);
-
-            return response;
+            response.Result = await _slasconeClientV2.GetConsumptionStatusAsync(validateConsumptionDto);
         }
         catch (ApiException<UsageHeartbeatResponseErrors> ex)
         {
-            if (ex.Result.Errors == null)
-            {
-                Console.WriteLine(ex.Message);
-            }
-            Console.WriteLine(ex.Result.Errors);
-            throw;
+            response.Errors = ex.Result.Errors;
+            response.StatusCode = ex.StatusCode.ToString();
+            response.Message = ex.Message;
         }
         catch (ApiException ex)
         {
-            Console.WriteLine($"{ex.StatusCode}: ex.Response");
-            throw;
+            response.StatusCode = ex.StatusCode.ToString();
+            response.Message = ex.Message;
         }
+
+
+        return response;
     }
 }

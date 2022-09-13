@@ -1,4 +1,7 @@
-﻿namespace Slascone.Provisioning.Sample.NuGet;
+﻿using Slascone.Client;
+using System.Xml;
+
+namespace Slascone.Provisioning.Sample.NuGet;
 
 internal class Program
 {
@@ -16,27 +19,26 @@ internal class Program
             Software_version = "12.2.8"
         };
 
-        try
+        var activatedLicense = await useCaseActivateLicense.ActivateLicenseAsync(activateClientDto);
+
+        if (activatedLicense.Result != null)
         {
-            var activatedLicense = await useCaseActivateLicense.ActivateLicenseAsync(activateClientDto);
-
-            if (activatedLicense != null)
-            {
-                Console.WriteLine("Successfully activated license.");
-            }
-
+            Console.WriteLine("Successfully activated license.");
+        }
+        else
+        {
             /*If the activated licensed failed, the api server responses with a specific error message which describes the problem.
-                You can verify the error messages in Use Cases that throw specific exception.*/
+              You can verify the error messages in Use Cases that throw specific exception.*/
+            Console.WriteLine(activatedLicense.StatusCode);
+            Console.WriteLine(activatedLicense.Errors);
+        }
 
-            // ToDo: Uncomment specific scenario
-            //await FloatingLicensingSample(activatedLicense);
-            //await HeartbeatSample(activatedLicense);
-            //LicenseFileSample("XX/LicenseSample.xml");
-        }
-        catch (Exception)
-        {
-            Console.ReadLine();
-        }
+        Console.ReadLine();
+
+        // ToDo: Uncomment specific scenario
+        //await FloatingLicensingSample(activatedLicense);
+        //await HeartbeatSample(activatedLicense);
+        //LicenseFileSample("XX/LicenseSample.xml");
     }
 
     private async Task FloatingLicensingSample(LicenseInfoDto activatedLicense)
@@ -63,7 +65,7 @@ internal class Program
           You can verify the error messages in Use Cases that throw specific exception.*/
 
         // After successfully generating a heartbeat the client have to check provisioning mode of the license. Is it floating a session has to be opened.
-        if (heartbeatResult != null && heartbeatResult.Provisioning_mode == ProvisioningMode.Floating)
+        if (heartbeatResult != null && heartbeatResult.Result?.Provisioning_mode == ProvisioningMode.Floating)
         {
             // ToDo: Fill the variables
             var sessionDto = new SessionRequestDto
@@ -79,7 +81,7 @@ internal class Program
 
             if (openSessionResult != null)
             {
-                Console.WriteLine("Session active until: " + openSessionResult.Session_valid_until);
+                Console.WriteLine("Session active until: " + openSessionResult.Result?.Session_valid_until);
             }
 
             // If the client have finished his work, he has to close the session. Therefore other clients are not blocked anymore and have not to wait until another Client expired. 
