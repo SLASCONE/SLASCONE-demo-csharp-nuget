@@ -1,3 +1,3 @@
 # SLASCONE-demo-csharp-nuget
 
-Developed this in.Net 6 with Visual Studio 2022.
+This demo project is developed in.Net 6 with Visual Studio 2022.
