@@ -7,7 +7,12 @@ internal class Program
 {
     static async Task Main(string[] args)
     {
-        IUseCaseActivateLicense useCaseActivateLicense = new UseCaseActivateLicense();
+        ISlasconeClientV2 _slasconeClientV2 = new SlasconeClientV2(Helper.ApiBaseUrl,
+            Helper.IsvId,
+            Helper.ProvisioningKey,
+            Helper.SignatureValidationMode,
+            Helper.SymmetricEncryptionKey,
+            Helper.Certificate);
 
         var activateClientDto = new ActivateClientDto
         {
@@ -19,7 +24,7 @@ internal class Program
             Software_version = "12.2.8"
         };
 
-        var activatedLicense = await useCaseActivateLicense.ActivateLicenseAsync(activateClientDto);
+        var activatedLicense = await _slasconeClientV2.ActivateLicenseAsync(activateClientDto);
 
         if (activatedLicense.Result != null)
         {
@@ -43,8 +48,12 @@ internal class Program
 
     private async Task FloatingLicensingSample(LicenseInfoDto activatedLicense)
     {
-        IUseCaseHeartbeat useCaseHeartbeat = new UseCaseHeartbeat();
-        IUseCaseFloatingLicense useCaseFloatingLicense = new UseCaseFloatingLicense();
+        ISlasconeClientV2 _slasconeClientV2 = new SlasconeClientV2(Helper.ApiBaseUrl,
+            Helper.IsvId,
+            Helper.ProvisioningKey,
+            Helper.SignatureValidationMode,
+            Helper.SymmetricEncryptionKey,
+            Helper.Certificate);
 
         // ToDo: Fill the variables
         var heartbeatDto = new AddHeartbeatDto
@@ -59,7 +68,7 @@ internal class Program
             Operating_system = Helper.GetOperatingSystem()
         };
 
-        var heartbeatResult = await useCaseHeartbeat.AddHeartbeatAsync(heartbeatDto);
+        var heartbeatResult = await _slasconeClientV2.AddHeartbeatAsync(heartbeatDto);
 
         /*If the heartbeat failed, the api server responses with a specific error message which describes the problem.
           You can verify the error messages in Use Cases that throw specific exception.*/
@@ -74,7 +83,7 @@ internal class Program
                 License_id = Guid.Parse("")
             };
 
-            var openSessionResult = await useCaseFloatingLicense.OpenSessionAsync(sessionDto);
+            var openSessionResult = await _slasconeClientV2.OpenSessionAsync(sessionDto);
 
             /*If the heartbeat failed, the api server responses with a specific error message which describes the problem.
              You can verify the error messages in Use Cases that throw specific exception.*/
@@ -85,7 +94,7 @@ internal class Program
             }
 
             // If the client have finished his work, he has to close the session. Therefore other clients are not blocked anymore and have not to wait until another Client expired. 
-            var closeSessionResult = await useCaseFloatingLicense.CloseSessionAsync(sessionDto);
+            var closeSessionResult = await _slasconeClientV2.CloseSessionAsync(sessionDto);
 
             Console.WriteLine(closeSessionResult);
         }
@@ -93,8 +102,12 @@ internal class Program
 
     private async Task HeartbeatSample(LicenseInfoDto activatedLicense)
     {
-        IUseCaseActivateLicense useCaseActivateLicense = new UseCaseActivateLicense();
-        IUseCaseHeartbeat useCaseHeartbeat = new UseCaseHeartbeat();
+        ISlasconeClientV2 _slasconeClientV2 = new SlasconeClientV2(Helper.ApiBaseUrl,
+            Helper.IsvId,
+            Helper.ProvisioningKey,
+            Helper.SignatureValidationMode,
+            Helper.SymmetricEncryptionKey,
+            Helper.Certificate);
 
         // ToDo: Fill the variables
         var heartbeatDto = new AddHeartbeatDto
@@ -108,7 +121,7 @@ internal class Program
             Operating_system = Helper.GetOperatingSystem()
         };
 
-        var heartbeatResult = await useCaseHeartbeat.AddHeartbeatAsync(heartbeatDto);
+        var heartbeatResult = await _slasconeClientV2.AddHeartbeatAsync(heartbeatDto);
 
         if (heartbeatResult != null)
         {
@@ -123,7 +136,7 @@ internal class Program
         analyticalHb.Analytical_heartbeat = new List<AnalyticalFieldValueDto>();
         analyticalHb.Client_id = Helper.GetWindowsUniqueDeviceId();
 
-        var analyticalHeartbeatResult = await useCaseHeartbeat.AddAnalyticalHeartbeatAsync(analyticalHb);
+        var analyticalHeartbeatResult = await _slasconeClientV2.AddAnalyticalHeartbeatAsync(analyticalHb);
 
         Console.WriteLine(analyticalHeartbeatResult);
 
@@ -142,7 +155,7 @@ internal class Program
         usageHeartbeat.Usage_heartbeat.Add(usageFeatureValue1);
         usageHeartbeat.Usage_heartbeat.Add(usageFeatureValue2);
 
-        var usageHeartbeatResult = await useCaseHeartbeat.AddUsageHeartbeatAsync(usageHeartbeat);
+        var usageHeartbeatResult = await _slasconeClientV2.AddUsageHeartbeatAsync(usageHeartbeat);
 
         Console.WriteLine(usageHeartbeatResult);
 
@@ -154,7 +167,7 @@ internal class Program
                 Token_key = Guid.Parse("")
             };
 
-            var unassignResult = await useCaseActivateLicense.UnassignAsync(unassignDto);
+            var unassignResult = await _slasconeClientV2.UnassignLicenseAsync(unassignDto);
 
             Console.WriteLine(unassignResult);
         }
@@ -171,11 +184,11 @@ internal class Program
         consumptionHeartbeatValue1.Limitation_id = Guid.Parse("");
         consumptionHeartbeat.Consumption_heartbeat.Add(consumptionHeartbeatValue1);
 
-        var consumptionHeartbeatResult = await useCaseHeartbeat.AddConsumptionHeartbeatAsync(consumptionHeartbeat);
+        var consumptionHeartbeatResult = await _slasconeClientV2.AddConsumptionHeartbeatAsync(consumptionHeartbeat);
 
         Console.WriteLine(consumptionHeartbeatResult);
 
-        var remainingConsumptions = await useCaseHeartbeat.GetConsumptionStatusAsync(new ValidateConsumptionStatusDto
+        var remainingConsumptions = await _slasconeClientV2.GetConsumptionStatusAsync(new ValidateConsumptionStatusDto
         { Limitation_id = Guid.Parse(""), Client_id = Helper.GetWindowsUniqueDeviceId() });
     }
 
