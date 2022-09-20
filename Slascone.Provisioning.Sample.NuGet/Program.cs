@@ -24,23 +24,30 @@ internal class Program
             Software_version = "12.2.8"
         };
 
-        var activatedLicense = await _slasconeClientV2.ActivateLicenseAsync(activateClientDto);
-
-        /*   If the activation failed, the api server responses with a specific error message which describes 
-             the problem. Therefore the LicenseInfo object is declared with null. */
-
-        if (activatedLicense.StatusCode == "409")
+        try
         {
-            Console.WriteLine(activatedLicense.Error.Message);
-            /*Example for 
-            if (activatedLicense.Error.Id == 2006)
-            { 
+            var activatedLicense = await _slasconeClientV2.ActivateLicenseAsync(activateClientDto);
+
+            /*   If the activation failed, the api server responses with a specific error message which describes 
+                 the problem. Therefore the LicenseInfo object is declared with null. */
+
+            if (activatedLicense.StatusCode == "409")
+            {
+                Console.WriteLine(activatedLicense.Error.Message);
+                /*Example for 
+                if (activatedLicense.Error.Id == 2006)
+                { 
+                }
+                */
             }
-            */
+            else
+            {
+                Console.WriteLine("Successfully activated license.");
+            }
         }
-        else
+        catch(Exception ex)
         {
-            Console.WriteLine("Successfully activated license.");
+            Console.WriteLine(ex.Message);
         }
 
         Console.ReadLine();
