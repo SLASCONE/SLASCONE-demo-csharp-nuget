@@ -1,3 +1,3 @@
 # SLASCONE-demo-csharp-nuget
 
-This demo project is developed in.Net 6 with Visual Studio 2022.
+This example uses the official Slascone.Client NuGet package.
