@@ -26,16 +26,21 @@ internal class Program
 
         var activatedLicense = await _slasconeClientV2.ActivateLicenseAsync(activateClientDto);
 
-        if (activatedLicense.Result != null)
+        /*   If the activation failed, the api server responses with a specific error message which describes 
+             the problem. Therefore the LicenseInfo object is declared with null. */
+
+        if (activatedLicense.StatusCode == "409")
         {
-            Console.WriteLine("Successfully activated license.");
+            Console.WriteLine(activatedLicense.Error.Message);
+            /*Example for 
+            if (activatedLicense.Error.Id == 2006)
+            { 
+            }
+            */
         }
         else
         {
-            /*If the activated licensed failed, the api server responses with a specific error message which describes the problem.
-              You can verify the error messages in Use Cases that throw specific exception.*/
-            Console.WriteLine(activatedLicense.StatusCode);
-            Console.WriteLine(activatedLicense.Errors);
+            Console.WriteLine("Successfully activated license.");
         }
 
         Console.ReadLine();
@@ -70,10 +75,8 @@ internal class Program
 
         var heartbeatResult = await _slasconeClientV2.AddHeartbeatAsync(heartbeatDto);
 
-        /*If the heartbeat failed, the api server responses with a specific error message which describes the problem.
-          You can verify the error messages in Use Cases that throw specific exception.*/
-
-        // After successfully generating a heartbeat the client have to check provisioning mode of the license. Is it floating a session has to be opened.
+        /* After successfully generating a heartbeat the client have to check provisioning mode of the license.
+           Is it floating a session has to be opened. */
         if (heartbeatResult != null && heartbeatResult.Result?.Provisioning_mode == ProvisioningMode.Floating)
         {
             // ToDo: Fill the variables
@@ -85,15 +88,18 @@ internal class Program
 
             var openSessionResult = await _slasconeClientV2.OpenSessionAsync(sessionDto);
 
-            /*If the heartbeat failed, the api server responses with a specific error message which describes the problem.
-             You can verify the error messages in Use Cases that throw specific exception.*/
-
-            if (openSessionResult != null)
+            //If the floating limit is reached the api server responses with an Error.
+            if (openSessionResult.StatusCode == "409")
+            {
+                Console.WriteLine(openSessionResult.Error?.Message);
+            }
+            else
             {
                 Console.WriteLine("Session active until: " + openSessionResult.Result?.Session_valid_until);
             }
 
-            // If the client have finished his work, he has to close the session. Therefore other clients are not blocked anymore and have not to wait until another Client expired. 
+            /* If the client have finished his work, he has to close the session.
+               Therefore other clients are not blocked anymore and have not to wait until another Client expired. */
             var closeSessionResult = await _slasconeClientV2.CloseSessionAsync(sessionDto);
 
             Console.WriteLine(closeSessionResult);
@@ -123,13 +129,16 @@ internal class Program
 
         var heartbeatResult = await _slasconeClientV2.AddHeartbeatAsync(heartbeatDto);
 
-        if (heartbeatResult != null)
+        /* If the heartbeat failed, the api server responses with a specific error message which describes the problem.
+           Therefore the LicenseInfo object is declared with null. */
+        if (heartbeatResult.StatusCode == "409")
+        {
+            Console.WriteLine(heartbeatResult.Error?.Message);
+        }
+        else
         {
             Console.WriteLine("Successfully created heartbeat.");
         }
-
-        /*If the heartbeat failed, the api server responses with a specific error message which describes the problem.
-          You can verify the error messages in Use Cases that throw specific exception.*/
 
         // ToDo: Fill the variables
         var analyticalHb = new AnalyticalHeartbeatDto();
