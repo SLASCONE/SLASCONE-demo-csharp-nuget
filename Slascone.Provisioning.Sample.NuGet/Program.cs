@@ -57,7 +57,7 @@ namespace Slascone.Provisioning.Sample.NuGet;
             {
                 Console.WriteLine(result.Error.Message);
                 /*Example for 
-                if (activatedLicense.Error.Id == 2006)
+                if (result.Error.Id == 2006)
                 { 
                 }
                 */
@@ -89,23 +89,23 @@ namespace Slascone.Provisioning.Sample.NuGet;
 
         try
         {
-            var result = await _slasconeClientV2.AddHeartbeatAsync(heartbeatDto);  
-            if (result.StatusCode == "200")
+            var result23 = await _slasconeClientV2.AddHeartbeatAsync(heartbeatDto);  
+            if (result23.StatusCode == "200")
             {
                 Console.WriteLine("Successfully created heartbeat.");
             }
-            else if(result.StatusCode == "409")
+            else if (result23.StatusCode == "409")
             {
-                Console.WriteLine(result.Error.Message);
+                Console.WriteLine(result23.Error.Message);
                 /*Example for 
-                if (activatedLicense.Error.Id == 2006)
+                if (result.Error.Id == 2006)
                 { 
                 }
                 */
             }
             else
             {
-                Console.WriteLine(result.Message);
+                Console.WriteLine(result23.Message);
             }
         }
         catch (Exception ex)
@@ -134,7 +134,7 @@ namespace Slascone.Provisioning.Sample.NuGet;
             {
                 Console.WriteLine(result.Error.Message);
                 /*Example for 
-                if (activatedLicense.Error.Id == 2006)
+                if (result.Error.Id == 2006)
                 { 
                 }
                 */
@@ -150,7 +150,7 @@ namespace Slascone.Provisioning.Sample.NuGet;
         }
     }
 
-    private async Task UsageHeartbeatSample(ISlasconeClientV2 _slasconeClientV2)
+    private static async Task UsageHeartbeatSample(ISlasconeClientV2 _slasconeClientV2)
     {
 
 
@@ -160,11 +160,11 @@ namespace Slascone.Provisioning.Sample.NuGet;
         usageHeartbeat.Client_id = Helper.GetWindowsUniqueDeviceId();
 
         var usageFeatureValue1 = new UsageHeartbeatValueDto();
-        usageFeatureValue1.Usage_feature_id = Guid.Parse("");
+        usageFeatureValue1.Usage_feature_id = Guid.Parse("b18657cc-1f7c-43fa-e3a4-08da6fa41ad3");
         usageFeatureValue1.Value = 0;
 
         var usageFeatureValue2 = new UsageHeartbeatValueDto();
-        usageFeatureValue2.Usage_feature_id = Guid.Parse("");
+        usageFeatureValue2.Usage_feature_id = Guid.Parse("b18657cc-1f7c-43fa-e3a4-08da6fa41ad3");
         usageFeatureValue2.Value = 0;
         usageHeartbeat.Usage_heartbeat.Add(usageFeatureValue1);
         usageHeartbeat.Usage_heartbeat.Add(usageFeatureValue2);
@@ -180,7 +180,7 @@ namespace Slascone.Provisioning.Sample.NuGet;
             {
                 Console.WriteLine(result.Error.Message);
                 /*Example for 
-                if (activatedLicense.Error.Id == 2006)
+                if (result.Error.Id == 2006)
                 { 
                 }
                 */
@@ -196,19 +196,18 @@ namespace Slascone.Provisioning.Sample.NuGet;
         }
     }
 
-    private async Task ConsumptionHeartbeatSample(ISlasconeClientV2 _slasconeClientV2)
+    private static async Task ConsumptionHeartbeatSample(ISlasconeClientV2 _slasconeClientV2)
     {
 
         // ToDo: Fill the variables
         var consumptionHeartbeat = new FullConsumptionHeartbeatDto();
         consumptionHeartbeat.Client_id = Helper.GetWindowsUniqueDeviceId();
         consumptionHeartbeat.Consumption_heartbeat = new List<ConsumptionHeartbeatValueDto>();
-        consumptionHeartbeat.Token_key = Guid.Parse("");
+        //consumptionHeartbeat.Token_key = Guid.Parse("");
 
         var consumptionHeartbeatValue1 = new ConsumptionHeartbeatValueDto();
-        consumptionHeartbeatValue1.Limitation_id = Guid.Parse("");
+        consumptionHeartbeatValue1.Limitation_id = Guid.Parse("b18657cc-1f7c-43fa-e3a4-08da6fa41ad3");
         consumptionHeartbeatValue1.Value = 1;
-        consumptionHeartbeatValue1.Limitation_id = Guid.Parse("");
         consumptionHeartbeat.Consumption_heartbeat.Add(consumptionHeartbeatValue1);
 
         try
@@ -223,7 +222,7 @@ namespace Slascone.Provisioning.Sample.NuGet;
             {
                 Console.WriteLine(result.Error.Message);
                 /*Example for 
-                if (activatedLicense.Error.Id == 2006)
+                if (result.Error.Id == 2006)
                 { 
                 }
                 */
@@ -259,7 +258,7 @@ namespace Slascone.Provisioning.Sample.NuGet;
             {
                 Console.WriteLine(result.Error.Message);
                 /*Example for 
-                if (activatedLicense.Error.Id == 2006)
+                if (result.Error.Id == 2006)
                 { 
                 }
                 */
@@ -296,7 +295,7 @@ namespace Slascone.Provisioning.Sample.NuGet;
             {
                 Console.WriteLine(result.Error.Message);
                 /*Example for 
-                if (activatedLicense.Error.Id == 2006)
+                if (result.Error.Id == 2006)
                 { 
                 }
                 */

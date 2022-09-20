@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Slascone.Client" Version="2.0.67" />
+    <PackageReference Include="Slascone.Client" Version="2.0.68" />
     <PackageReference Include="System.Management" Version="6.0.0" />
     <PackageReference Include="System.Security.Cryptography.Xml" Version="6.0.1" />
   </ItemGroup>
