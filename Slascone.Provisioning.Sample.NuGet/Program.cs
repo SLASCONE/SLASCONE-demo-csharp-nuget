@@ -22,7 +22,7 @@ namespace Slascone.Provisioning.Sample.NuGet;
         // ToDo: Uncomment the specific scenario you want to test
        
         await ActivationSample(pr._slasconeClientV2);
-        //await HeartbeatSample(pr._slasconeClientV2);
+        await HeartbeatSample(pr._slasconeClientV2);
         //await AnalyticalHeartbeatSample(pr._slasconeClientV2);
         //await UsageHeartbeatSample(pr._slasconeClientV2);
         //await ConsumptionHeartbeatSample(pr._slasconeClientV2);
@@ -89,14 +89,14 @@ namespace Slascone.Provisioning.Sample.NuGet;
 
         try
         {
-            var result23 = await _slasconeClientV2.AddHeartbeatAsync(heartbeatDto);  
-            if (result23.StatusCode == "200")
+            var result = await _slasconeClientV2.AddHeartbeatAsync(heartbeatDto);  
+            if (result.StatusCode == "200")
             {
                 Console.WriteLine("Successfully created heartbeat.");
             }
-            else if (result23.StatusCode == "409")
+            else if (result.StatusCode == "409")
             {
-                Console.WriteLine(result23.Error.Message);
+                Console.WriteLine(result.Error.Message);
                 /*Example for 
                 if (result.Error.Id == 2006)
                 { 
@@ -105,7 +105,7 @@ namespace Slascone.Provisioning.Sample.NuGet;
             }
             else
             {
-                Console.WriteLine(result23.Message);
+                Console.WriteLine(result.Message);
             }
         }
         catch (Exception ex)
