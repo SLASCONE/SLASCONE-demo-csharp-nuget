@@ -16,8 +16,8 @@ internal class Program
 
         var activateClientDto = new ActivateClientDto
         {
-            Product_id = Guid.Parse("47df1df5-bbc8-4b1b-a185-58ddfb1d3271"),
-            License_key = "0efce21f-c6bb-4a68-b65e-c3cdfdded42c",
+            Product_id = Guid.Parse("b18657cc-1f7c-43fa-e3a4-08da6fa41ad3"),
+            License_key = "27180460-29df-4a5a-a0a1-78c85ab6cee0",
             Client_id = Helper.GetWindowsUniqueDeviceId(),
             Client_description = "",
             Client_name = "",
