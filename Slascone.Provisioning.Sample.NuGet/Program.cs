@@ -26,7 +26,7 @@ namespace Slascone.Provisioning.Sample.NuGet;
         //await AnalyticalHeartbeatSample(pr._slasconeClientV2);
         //await UsageHeartbeatSample(pr._slasconeClientV2);
         //await ConsumptionHeartbeatSample(pr._slasconeClientV2);
-        //await OpenSession(pr._slasconeClientV2);
+        await OpenSession(pr._slasconeClientV2);
         //await CloseSession(pr._slasconeClientV2);
         //LicenseFileSample("XX/LicenseSample.xml");
     }
@@ -49,11 +49,11 @@ namespace Slascone.Provisioning.Sample.NuGet;
             /*   If the activation failed, the api server responses with a specific error message which describes 
                  the problem. Therefore the LicenseInfo object is declared with null. */
 
-            if (result.StatusCode == "200")
+            if (result.StatusCode == 200)
             {
                 Console.WriteLine("Successfull activation.");
             }
-            else if (result.StatusCode == "409")
+            else if (result.StatusCode == 409)
             {
                 Console.WriteLine(result.Error.Message);
                 /*Example for 
@@ -90,11 +90,11 @@ namespace Slascone.Provisioning.Sample.NuGet;
         try
         {
             var result = await _slasconeClientV2.AddHeartbeatAsync(heartbeatDto);  
-            if (result.StatusCode == "200")
+            if (result.StatusCode == 200)
             {
                 Console.WriteLine("Successfully created heartbeat.");
             }
-            else if (result.StatusCode == "409")
+            else if (result.StatusCode == 409)
             {
                 Console.WriteLine(result.Error.Message);
                 /*Example for 
@@ -126,11 +126,11 @@ namespace Slascone.Provisioning.Sample.NuGet;
         try
         {
             var result = await _slasconeClientV2.AddAnalyticalHeartbeatAsync(analyticalHb);
-            if (result.StatusCode == "200")
+            if (result.StatusCode == 200)
             {
                 Console.WriteLine("Successfully created analytical heartbeat.");
             }
-            else if (result.StatusCode == "409")
+            else if (result.StatusCode == 409)
             {
                 Console.WriteLine(result.Error.Message);
                 /*Example for 
@@ -172,11 +172,11 @@ namespace Slascone.Provisioning.Sample.NuGet;
         try
         {
             var result = await _slasconeClientV2.AddUsageHeartbeatAsync(usageHeartbeat);
-            if (result.StatusCode == "200")
+            if (result.StatusCode == 200)
             {
                 Console.WriteLine("Successfully created usage heartbeat.");
             }
-            else if (result.StatusCode == "409")
+            else if (result.StatusCode == 409)
             {
                 Console.WriteLine(result.Error.Message);
                 /*Example for 
@@ -214,11 +214,11 @@ namespace Slascone.Provisioning.Sample.NuGet;
         {
             var result = await _slasconeClientV2.AddConsumptionHeartbeatAsync(consumptionHeartbeat);
 
-            if (result.StatusCode == "200")
+            if (result.StatusCode == 200)
             {
                 Console.WriteLine("Successfully created consumption heartbeat.");
             }
-            else if (result.StatusCode == "409")
+            else if (result.StatusCode == 409)
             {
                 Console.WriteLine(result.Error.Message);
                 /*Example for 
@@ -250,11 +250,11 @@ namespace Slascone.Provisioning.Sample.NuGet;
         try
         {
             var result = await _slasconeClientV2.OpenSessionAsync(sessionDto);
-            if (result.StatusCode == "200")
+            if (result.StatusCode == 200)
             {
                 Console.WriteLine("Successfully opened session.");
             }
-            else if (result.StatusCode == "409")
+            else if (result.StatusCode == 409)
             {
                 Console.WriteLine(result.Error.Message);
                 /*Example for 
@@ -287,11 +287,11 @@ namespace Slascone.Provisioning.Sample.NuGet;
         try
         {
             var result = await _slasconeClientV2.CloseSessionAsync(sessionDto);
-            if (result.StatusCode == "200")
+            if (result.StatusCode == 200)
             {
                 Console.WriteLine("Successfully closed session.");
             }
-            else if (result.StatusCode == "409")
+            else if (result.StatusCode == 409)
             {
                 Console.WriteLine(result.Error.Message);
                 /*Example for 
