@@ -28,11 +28,12 @@ public class Helper
     //https://support.slascone.com/hc/en-us/articles/360016063637-DIGITAL-SIGNATURE-AND-DATA-INTEGRITY
 
     //0 = none, 1 = symmetric, 2 = assymetric
+    //use 0 for initial prototyping, 2 for production
     public const int SignatureValidationMode = 0;
     //Only for symmetric encryption
-    public const string SymmetricEncryptionKey = "";
+    public const string SymmetricEncryptionKey = "NfEpJ2DFfgczdYqOjvmlgP2O/4VlqmRHXNE9xDXbqZcOwXTbH3TFeBAKKbEzga7D42bmxuQPK5gGEseNNpFRekd/Kf059rff/N4phalkP25zVqH3VZIOlmot4jEeNr0m";
     //Only for assymetric encryption - The path to the certificate.
-    public const string Certificate = "signature_pub_key.pfx";
+    public const string Certificate = @"../../../Assets/signature_pub_key.pfx";
 
     #endregion
 
