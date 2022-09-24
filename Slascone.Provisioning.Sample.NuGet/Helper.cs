@@ -78,7 +78,11 @@ public class Helper
             {
                 return true;
             }
-            return false;
+            else
+            {
+                throw new Exception("The signature of the license file is not valid.");
+            }
+            
         }
     }
 
