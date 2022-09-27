@@ -37,7 +37,7 @@ namespace Slascone.Provisioning.Sample.NuGet;
             License_key = "27180460-29df-4a5a-a0a1-78c85ab6cee0",
             Client_id = Helper.GetWindowsUniqueDeviceId(),
             Client_description = "",
-            Client_name = "",
+            Client_name = "From GitHub Buget Sample",
             Software_version = "12.2.8"
         };
 

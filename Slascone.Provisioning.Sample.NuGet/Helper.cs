@@ -19,7 +19,7 @@ public class Helper
     // ToDo: Exchange the value of the variables to your specific tenant.
     public const string ApiBaseUrl = "https://api.slascone.com";
     public const string ProvisioningKey = "NfEpJ2DFfgczdYqOjvmlgP2O/4VlqmRHXNE9xDXbqZcOwXTbH3TFeBAKKbEzga7D7ashHxFtZOR142LYgKWdNocibDgN75/P58YNvUZafLdaie7eGwI/2gX/XuDPtqDW";
-    public const string IsvId = "2af5fe02-6207-4214-946e-b00ac5309f53";
+    public static Guid IsvId = Guid.Parse("2af5fe02-6207-4214-946e-b00ac5309f53");
 
     #endregion
 
