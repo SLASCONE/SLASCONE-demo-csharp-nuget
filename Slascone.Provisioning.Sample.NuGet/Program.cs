@@ -3,11 +3,12 @@ using System.Xml;
 
 namespace Slascone.Provisioning.Sample.NuGet;
 
- class Program
+class Program
 {
-    public  ISlasconeClientV2 _slasconeClientV2;
-    public Program() {
+    private readonly ISlasconeClientV2 _slasconeClientV2;
 
+    public Program()
+    {
         _slasconeClientV2 = new SlasconeClientV2(Helper.ApiBaseUrl,
                 Helper.IsvId,
                 Helper.ProvisioningKey,
@@ -15,21 +16,22 @@ namespace Slascone.Provisioning.Sample.NuGet;
                 Helper.SymmetricEncryptionKey,
                 Helper.Certificate);
     }
+
     static async Task Main(string[] args)
     {
         var pr = new Program();
-    
-        await ActivationExample(pr._slasconeClientV2);
-        await HeartbeatExample(pr._slasconeClientV2);
-        await AnalyticalHeartbeatExample(pr._slasconeClientV2);
-        await UsageHeartbeatExample(pr._slasconeClientV2);
-        await ConsumptionHeartbeatExample(pr._slasconeClientV2);
-        await OpenSessionExample(pr._slasconeClientV2);
-        await CloseSessionExample(pr._slasconeClientV2);
-        IsLicenseFileSignatureValid( @"../../../Assets/OfflineLicenseFile.xml");
+
+        await pr.ActivationExample();
+        await pr.HeartbeatExample();
+        await pr.AnalyticalHeartbeatExample();
+        await pr.UsageHeartbeatExample();
+        await pr.ConsumptionHeartbeatExample();
+        await pr.OpenSessionExample();
+        await pr.CloseSessionExample();
+        IsLicenseFileSignatureValid(@"../../../Assets/OfflineLicenseFile.xml");
     }
 
-    private static async Task ActivationExample(ISlasconeClientV2 _slasconeClientV2)
+    private async Task ActivationExample()
     {
         var activateClientDto = new ActivateClientDto
         {
@@ -67,7 +69,8 @@ namespace Slascone.Provisioning.Sample.NuGet;
             Console.WriteLine(ex.Message);
         }
     }
-    private static async Task HeartbeatExample(ISlasconeClientV2 _slasconeClientV2)
+
+    private async Task HeartbeatExample()
     {
         var heartbeatDto = new AddHeartbeatDto
         {
@@ -82,7 +85,7 @@ namespace Slascone.Provisioning.Sample.NuGet;
 
         try
         {
-            var result = await _slasconeClientV2.AddHeartbeatAsync(heartbeatDto);  
+            var result = await _slasconeClientV2.AddHeartbeatAsync(heartbeatDto);
             if (result.StatusCode == 200)
             {
                 Console.WriteLine("Successfully created heartbeat.");
@@ -105,19 +108,18 @@ namespace Slascone.Provisioning.Sample.NuGet;
         {
             Console.WriteLine(ex.Message);
         }
-
     }
 
-    private static async Task AnalyticalHeartbeatExample(ISlasconeClientV2 _slasconeClientV2)
+    private async Task AnalyticalHeartbeatExample()
     {
         var analyticalHeartbeatDto = new AnalyticalHeartbeatDto();
         analyticalHeartbeatDto.Analytical_heartbeat = new List<AnalyticalFieldValueDto>();
         analyticalHeartbeatDto.Client_id = Helper.GetWindowsUniqueDeviceId();
-        var analyticalField = new AnalyticalFieldValueDto 
-        { 
+        var analyticalField = new AnalyticalFieldValueDto
+        {
             Analytical_field_id = Guid.Parse("2754aca1-4d1a-4af3-9387-08da9ac54c6d"),
             Value = "SQL Server 2019"
-        };        
+        };
         analyticalHeartbeatDto.Analytical_heartbeat.Add(analyticalField);
 
         try
@@ -147,7 +149,7 @@ namespace Slascone.Provisioning.Sample.NuGet;
         }
     }
 
-    private static async Task UsageHeartbeatExample(ISlasconeClientV2 _slasconeClientV2)
+    private async Task UsageHeartbeatExample()
     {
         var usageHeartbeat = new FullUsageHeartbeatDto();
         usageHeartbeat.Usage_heartbeat = new List<UsageHeartbeatValueDto>();
@@ -190,7 +192,7 @@ namespace Slascone.Provisioning.Sample.NuGet;
         }
     }
 
-    private static async Task ConsumptionHeartbeatExample(ISlasconeClientV2 _slasconeClientV2)
+    private async Task ConsumptionHeartbeatExample()
     {
         var consumptionHeartbeat = new FullConsumptionHeartbeatDto();
         consumptionHeartbeat.Client_id = Helper.GetWindowsUniqueDeviceId();
@@ -230,8 +232,7 @@ namespace Slascone.Provisioning.Sample.NuGet;
         }
     }
 
-
-    private static async Task OpenSessionExample(ISlasconeClientV2 _slasconeClientV2)
+    private async Task OpenSessionExample()
     {
         var sessionDto = new SessionRequestDto
         {
@@ -267,8 +268,7 @@ namespace Slascone.Provisioning.Sample.NuGet;
 
     }
 
-
-    private static async Task CloseSessionExample(ISlasconeClientV2 _slasconeClientV2)
+    private async Task CloseSessionExample()
     {
         var sessionDto = new SessionRequestDto
         {
@@ -313,15 +313,14 @@ namespace Slascone.Provisioning.Sample.NuGet;
         bool isValid = false;
         try
         {
-             isValid = Helper.IsFileSignatureValid(xmlDoc);
+            isValid = Helper.IsFileSignatureValid(xmlDoc);
         }
-        catch (Exception ex) 
+        catch (Exception ex)
         {
             Console.WriteLine(ex.ToString());
         }
         Console.WriteLine("Successfully validated the file's signature.");
         return isValid;
-
     }
 }
 
