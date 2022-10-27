@@ -319,7 +319,14 @@ namespace Slascone.Provisioning.Sample.NuGet;
         {
             Console.WriteLine(ex.ToString());
         }
-        Console.WriteLine("Successfully validated the file's signature.");
+        if (isValid)
+        {
+            Console.WriteLine("Successfully validated the file's signature.");
+        }
+        else
+        {
+            Console.WriteLine("Invalid file signature.");
+        }
         return isValid;
 
     }
