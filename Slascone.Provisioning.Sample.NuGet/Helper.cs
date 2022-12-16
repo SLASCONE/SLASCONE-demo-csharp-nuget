@@ -15,17 +15,6 @@ public class Helper
 
     }
 
-    public static readonly byte[] Key = new byte[]
-    {
-	    204, 77, 106, 8, 79, 124, 128, 213, 191, 210, 114, 88, 185, 112, 98, 251, 
-	    101, 158, 95, 105, 141, 102, 207, 189, 58, 210, 116, 37, 241, 73, 236, 174
-    };
-
-    public static readonly byte[] IV = new byte[]
-    {
-	    161, 20, 208, 165, 147, 79, 71, 40, 8, 243, 30, 119, 144, 147, 167, 26
-    };
-
     #region Main values - Fill according to your environment
 
 	// ToDo: Exchange the value of the variables to your specific tenant.

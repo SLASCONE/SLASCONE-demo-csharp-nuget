@@ -1,14 +1,6 @@
-﻿using System.Buffers.Text;
-using System.Diagnostics;
-using System.Reflection;
-using System.Resources;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using Slascone.Client;
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Unicode;
 using System.Xml;
-using Microsoft.Identity.Client;
 
 namespace Slascone.Provisioning.Sample.NuGet;
 
@@ -30,32 +22,6 @@ class Program
                 Helper.SignatureValidationMode,
                 Helper.SymmetricEncryptionKey,
                 Helper.Certificate);
-
-		string encryptedProvKey64;
-        
-        using (var aes = Aes.Create())
-        {
-	        aes.Key = Helper.Key;
-	        aes.IV = Helper.IV;
-
-	        var provKeyBytes = Encoding.Unicode.GetBytes(Helper.ProvisioningKey);
-
-			var encryptor = aes.CreateEncryptor();
-			var en = Convert.ToBase64String(encryptor.TransformFinalBlock(provKeyBytes, 0, provKeyBytes.Length));
-
-			encryptedProvKey64 = Convert.ToBase64String(aes.EncryptCbc(provKeyBytes, aes.IV));
-        }
-
-        using (var aes = Aes.Create())
-        {
-	        aes.Key = Helper.Key;
-	        aes.IV = Helper.IV;
-
-	        var decryptedProvKey =
-		        Encoding.Unicode.GetString(aes.DecryptCbc(Convert.FromBase64String(Assets.apikey.pk), aes.IV));
-
-	        var areEqual = decryptedProvKey == Helper.ProvisioningKey;
-        }
     }
 
 	static async Task Main(string[] args)
