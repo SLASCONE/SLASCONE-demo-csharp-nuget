@@ -38,29 +38,29 @@ public class Helper
     //Only for assymetric encryption - The path to the certificate.
     public const string Certificate = @"../../../Assets/signature_pub_key.pfx";
 
-    #endregion
+	#endregion
 
-    /// <summary>
-    /// Get a unique device id based on the system
-    /// </summary>
-    /// <returns>UUID via string</returns>
-    public static string GetUniqueDeviceId()
-    {
-	    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-	    {
-		    return WindowsDeviceInfos.ComputerSystemProductId;
-	    }
+	/// <summary>
+	/// Get a unique device id based on the system
+	/// </summary>
+	/// <returns>UUID via string</returns>
+	public static string GetUniqueDeviceId()
+	{
+		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+		{
+			return WindowsDeviceInfos.ComputerSystemProductId;
+		}
 
-	    if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-	    {
-		    return BitConverter.ToString(UTF8Encoding.UTF8.GetBytes(string.Concat(LinuxDeviceInfos.MachineId,
-			    LinuxDeviceInfos.RootDeviceSerial)));
-	    }
+		if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+		{
+			return BitConverter.ToString(MD5.HashData(UTF8Encoding.UTF8.GetBytes(string.Concat(LinuxDeviceInfos.MachineId,
+				LinuxDeviceInfos.RootDeviceSerial))));
+		}
 
-	    throw new NotSupportedException("GetUniqueDeviceId() is supported only on Windows and Linux");
-    }
+		throw new NotSupportedException("GetUniqueDeviceId() is supported only on Windows and Linux");
+	}
 
-    public static string GetOperatingSystem()
+	public static string GetOperatingSystem()
     {
 	    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 	    {
