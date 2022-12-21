@@ -18,6 +18,9 @@ class Program
 	// ID for product "CAD"
 	private readonly Guid _product_id_cad = Guid.Parse("b18657cc-1f7c-43fa-e3a4-08da6fa41ad3");
 
+	private Guid? _token_id = Guid.Empty;
+	private Stack<Guid> _sessionIds = new Stack<Guid>();
+
 	public Program()
 	{
 		_slasconeClientV2 = new SlasconeClientV2(Helper.ApiBaseUrl,
@@ -46,10 +49,12 @@ class Program
 			Console.WriteLine("2: Add license heart beat");
 			Console.WriteLine("3: Add analytical heart beat");
 			Console.WriteLine("4: Add usage heart beat");
-			Console.WriteLine("5: Lookup licenses");
-			Console.WriteLine("6: Open session");
-			Console.WriteLine("7: Close session");
-			Console.WriteLine("8: Print device infos");
+			Console.WriteLine("5: Add consumption heart beat");
+			Console.WriteLine("6: Unassign license from device (has to be activated again then)");
+			Console.WriteLine("7: Lookup licenses");
+			Console.WriteLine("8: Open session");
+			Console.WriteLine("9: Close session");
+			Console.WriteLine("10: Print device infos");
 			Console.WriteLine("x: Exit demo app");
 
 			Console.Write("> ");
@@ -74,18 +79,26 @@ class Program
 					break;
 
 				case "5":
-					await pr.LookupLicensesExample();
+					await pr.ConsumptionHeartbeatExample();
 					break;
 
 				case "6":
-					await pr.OpenSessionExample();
+					await pr.UnassignExample();
 					break;
 
 				case "7":
-					await pr.CloseSessionExample();
+					await pr.LookupLicensesExample();
 					break;
 
 				case "8":
+					await pr.OpenSessionExample();
+					break;
+
+				case "9":
+					await pr.CloseSessionExample();
+					break;
+
+				case "10":
 					if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 						Console.Write(WindowsDeviceInfos.LogDeviceInfos());
 					if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
@@ -93,9 +106,6 @@ class Program
 					break;
 			}
 		} while (!"x".Equals(input, StringComparison.InvariantCultureIgnoreCase));
-
-		//await pr.OpenSessionExample();
-		//await pr.CloseSessionExample();
 
 		//IsLicenseFileSignatureValid(@"../../../Assets/OfflineLicenseFile.xml");
 	}
@@ -107,7 +117,6 @@ class Program
 			Product_id = _product_id_cad,
 			License_key = _license_key,
 			Client_id = Helper.GetUniqueDeviceId(),
-			//Client_id = Guid.NewGuid().ToString(),
 			Client_description = "",
 			Client_name = "From GitHub Nuget Sample",
 			Software_version = "12.2.8"
@@ -145,12 +154,9 @@ class Program
 	{
 		var heartbeatDto = new AddHeartbeatDto
 		{
-			//Token_key = Guid.Parse(""),
 			Product_id = _product_id_cad,
 			Client_id = Helper.GetUniqueDeviceId(),
 			Software_version = "22.1",
-			//GroupId = "",
-			//HeartbeatTypeId = Guid.Parse(""),
 			Operating_system = Helper.GetOperatingSystem()
 		};
 
@@ -161,6 +167,7 @@ class Program
 			{
 				Console.WriteLine("Successfully created heartbeat.");
 				WriteLicenseInfo(result.Result);
+				_token_id = result.Result.Token_key;
 			}
 			else if (result.StatusCode == 409)
 			{
@@ -289,7 +296,6 @@ class Program
 		var consumptionHeartbeat = new FullConsumptionHeartbeatDto();
 		consumptionHeartbeat.Client_id = Helper.GetUniqueDeviceId();
 		consumptionHeartbeat.Consumption_heartbeat = new List<ConsumptionHeartbeatValueDto>();
-		//consumptionHeartbeat.Token_key = Guid.Parse("");
 
 		var consumptionHeartbeatValue1 = new ConsumptionHeartbeatValueDto();
 		consumptionHeartbeatValue1.Limitation_id = Guid.Parse("00cf2984-d71a-4c66-9f49-08da833189e3");
@@ -306,7 +312,47 @@ class Program
 			}
 			else if (result.StatusCode == 409)
 			{
-				Console.WriteLine(result.Error.Message);
+				ReportError("ComsumptionHeaerbeat", result.Error);
+				/*Example for 
+				if (result.Error.Id == 2006)
+				{ 
+				}
+				*/
+			}
+			else
+			{
+				Console.WriteLine(result.Message);
+			}
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine(ex.Message);
+		}
+	}
+
+	private async Task UnassignExample()
+	{
+		if (!_token_id.HasValue)
+		{
+			Console.WriteLine("You have to add a license heartbeat first to get a token for this operation.");
+			return;
+		}
+
+		var unassignDto = new UnassignDto
+		{
+			Token_key = _token_id.Value
+		};
+
+		try
+		{
+			var result = await _slasconeClientV2.UnassignLicenseAsync(unassignDto);
+			if (result.StatusCode == 200)
+			{
+				Console.WriteLine("Successfully unaasigned device from license.");
+			}
+			else if (result.StatusCode == 409)
+			{
+				ReportError("UnassignLicense", result.Error);
 				/*Example for 
 				if (result.Error.Id == 2006)
 				{ 
@@ -347,12 +393,14 @@ class Program
 	}
 
 	private async Task OpenSessionExample()
-    {
+	{
+		var sessionId = Guid.NewGuid();
+
         var sessionDto = new SessionRequestDto
         {
 			Client_id = Helper.GetUniqueDeviceId(),
 			License_id = Guid.Parse(_license_key),
-			Session_id = Guid.NewGuid()
+			Session_id = sessionId
         };
 
         try
@@ -360,12 +408,13 @@ class Program
             var result = await _slasconeClientV2.OpenSessionAsync(sessionDto);
             if (result.StatusCode == 200)
             {
-                Console.WriteLine("Successfully opened session.");
+				_sessionIds.Push(sessionId);
+                Console.WriteLine($"Successfully opened session {sessionId}.");
                 Console.WriteLine($"Session valid until {result.Result.Session_valid_until}.");
             }
             else if (result.StatusCode == 409)
             {
-	            Console.WriteLine(result.Message);
+	            ReportError("OpenSession", result.Error);
             }
 			else
             {
@@ -381,10 +430,15 @@ class Program
 
     private async Task CloseSessionExample()
     {
+	    var sessionId = _sessionIds.Any()
+		    ? _sessionIds.Pop()
+		    : new Guid();
+
         var sessionDto = new SessionRequestDto
         {
             Client_id = Helper.GetUniqueDeviceId(),
-            License_id = Guid.Parse(_license_key)
+            License_id = Guid.Parse(_license_key),
+			Session_id = sessionId
         };
 
         try
@@ -392,11 +446,11 @@ class Program
             var result = await _slasconeClientV2.CloseSessionAsync(sessionDto);
             if (result.StatusCode == 200)
             {
-                Console.WriteLine("Successfully closed session.");
+                Console.WriteLine($"Successfully closed session {sessionId}.");
             }
             else if (result.StatusCode == 409)
             {
-	            Console.WriteLine(result.Message);
+	            ReportError("CloseSession", result.Error);
             }
 			else
             {
