@@ -32,7 +32,7 @@ public class Helper
 
     //0 = none, 1 = symmetric, 2 = assymetric
     //use 0 for initial prototyping, 2 for production
-    public const int SignatureValidationMode = 0;
+    public const int SignatureValidationMode = 2;
     //Only for symmetric encryption
     public const string SymmetricEncryptionKey = "NfEpJ2DFfgczdYqOjvmlgP2O/4VlqmRHXNE9xDXbqZcOwXTbH3TFeBAKKbEzga7D42bmxuQPK5gGEseNNpFRekd/Kf059rff/N4phalkP25zVqH3VZIOlmot4jEeNr0m";
     //Only for assymetric encryption - The path to the certificate.
@@ -103,13 +103,30 @@ public class Helper
         }
     }
 
+    public static string LogCertificate()
+    {
+	    byte[] rawData = ReadFile(Certificate);
+	    // Load the certificate into an X509Certificate object.
+	    var signatureKeyCert = new X509Certificate2(rawData);
+
+	    var sb = new StringBuilder();
+	    sb.AppendLine($"Certificate Infos:")
+		    .AppendLine($"    Subject: {signatureKeyCert.Subject}")
+		    .AppendLine($"    Issuer: {signatureKeyCert.Issuer}")
+		    .AppendLine($"    Not before: {signatureKeyCert.NotBefore}")
+		    .AppendLine($"    Not after: {signatureKeyCert.NotAfter}")
+		    .AppendLine($"    Signature algorithm: {signatureKeyCert.SignatureAlgorithm.FriendlyName}")
+		    .AppendLine($"    Serial number: {signatureKeyCert.SerialNumber}")
+		    .AppendLine($"    Thumbprint: {signatureKeyCert.Thumbprint}");
+	    return sb.ToString();
+    }
 
     /// <summary>
-    /// Read a File
-    /// </summary>
-    /// <param name="fileName">file name</param>
-    /// <returns></returns>
-    private static byte[] ReadFile(string fileName)
+	/// Read a File
+	/// </summary>
+	/// <param name="fileName">file name</param>
+	/// <returns></returns>
+	private static byte[] ReadFile(string fileName)
     {
         FileStream f = new FileStream(fileName, FileMode.Open, FileAccess.Read);
         int size = (int)f.Length;

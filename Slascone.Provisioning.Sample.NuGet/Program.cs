@@ -40,6 +40,8 @@ class Program
 		Console.WriteLine();
 		Console.WriteLine($"Unique Client-Id for this device: {Helper.GetUniqueDeviceId()}");
 		Console.WriteLine($"Operating system: {Helper.GetOperatingSystem()}");
+		if (2 == Helper.SignatureValidationMode)
+			Console.WriteLine(Helper.LogCertificate());
 
 		string input;
 		do
@@ -54,7 +56,8 @@ class Program
 			Console.WriteLine("7: Lookup licenses");
 			Console.WriteLine("8: Open session");
 			Console.WriteLine("9: Close session");
-			Console.WriteLine("10: Print device infos");
+			Console.WriteLine("10: Validate license file");
+			Console.WriteLine("11: Print device infos");
 			Console.WriteLine("x: Exit demo app");
 
 			Console.Write("> ");
@@ -99,6 +102,10 @@ class Program
 					break;
 
 				case "10":
+					IsLicenseFileSignatureValid(@"../../../Assets/OfflineLicenseFile.xml");
+					break;
+
+				case "11":
 					if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 						Console.Write(WindowsDeviceInfos.LogDeviceInfos());
 					if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
@@ -107,7 +114,6 @@ class Program
 			}
 		} while (!"x".Equals(input, StringComparison.InvariantCultureIgnoreCase));
 
-		//IsLicenseFileSignatureValid(@"../../../Assets/OfflineLicenseFile.xml");
 	}
 
 	private async Task ActivationExample()
@@ -378,17 +384,30 @@ class Program
 			License_key = _license_key
 		};
 
-		var result = await _slasconeClientV2.GetLicensesByLicenseKeyAsync(getLicenses);
-
-		if (200 != result.StatusCode)
+		try
 		{
-			ReportError("LookupLicenses", result.Error);
-			return;
+
+			var result = await _slasconeClientV2.GetLicensesByLicenseKeyAsync(getLicenses);
+
+			if (200 == result.StatusCode)
+			{
+				foreach (var license in result.Result)
+				{
+					WriteLicenseInfo(license);
+				}
+			}
+			else if (409 == result.StatusCode)
+			{
+				ReportError("LookupLicenses", result.Error);
+			}
+			else
+			{
+				Console.WriteLine(result.Message);
+			}
 		}
-
-		foreach (var license in result.Result)
+		catch (Exception exception)
 		{
-			WriteLicenseInfo(license);
+			Console.WriteLine(exception.Message);
 		}
 	}
 
@@ -538,6 +557,9 @@ class Program
 
     private static void ReportError(string action, ErrorResultObjects error)
     {
+	    if (null == error)
+		    return;
+
 	    Console.WriteLine($"{action} received an error: {error.Message} (Id: {error.Id})");
     }
 }
