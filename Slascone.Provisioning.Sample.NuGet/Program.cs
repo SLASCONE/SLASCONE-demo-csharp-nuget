@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Reflection;
+using System.Runtime.InteropServices;
 using Slascone.Client;
 using System.Xml;
 using Slascone.Client.DeviceInfos;
@@ -24,11 +25,13 @@ class Program
 	public Program()
 	{
 		_slasconeClientV2 = new SlasconeClientV2(Helper.ApiBaseUrl,
-			Helper.IsvId,
-			Helper.ProvisioningKey,
-			Helper.SignatureValidationMode,
-			Helper.SymmetricEncryptionKey,
-			Helper.Certificate);
+				Helper.IsvId,
+				Helper.ProvisioningKey,
+				Helper.SignatureValidationMode,
+				Helper.SymmetricEncryptionKey,
+				Helper.Certificate)
+			.SetAppDataFolder(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+				Assembly.GetExecutingAssembly().GetName().Name));
 	}
 
 	static async Task Main(string[] args)
@@ -54,7 +57,9 @@ class Program
 			Console.WriteLine("7: Lookup licenses");
 			Console.WriteLine("8: Open session");
 			Console.WriteLine("9: Close session");
-			Console.WriteLine("10: Print device infos");
+			Console.WriteLine("10: Read offline license info (only available after at least one license heart beat)");
+			Console.WriteLine("11: Validate license file");
+			Console.WriteLine("12: Print device infos");
 			Console.WriteLine("x: Exit demo app");
 
 			Console.Write("> ");
@@ -99,6 +104,14 @@ class Program
 					break;
 
 				case "10":
+					pr.OfflineLicenseInfoExample();
+					break;
+
+				case "11":
+					IsLicenseFileSignatureValid(@"../../../Assets/OfflineLicenseFile.xml");
+					break;
+
+				case "12":
 					if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 						Console.Write(WindowsDeviceInfos.LogDeviceInfos());
 					if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
@@ -106,8 +119,6 @@ class Program
 					break;
 			}
 		} while (!"x".Equals(input, StringComparison.InvariantCultureIgnoreCase));
-
-		//IsLicenseFileSignatureValid(@"../../../Assets/OfflineLicenseFile.xml");
 	}
 
 	private async Task ActivationExample()
@@ -463,7 +474,21 @@ class Program
         }
     }
 
-    void WriteLicenseInfo(LicenseDto license)
+    private void OfflineLicenseInfoExample()
+    {
+	    var response = _slasconeClientV2.GetOfflineLicense();
+
+	    if (response.StatusCode == 200)
+	    {
+		    WriteLicenseInfo(response.Result);
+	    }
+	    else if (response.StatusCode == 400)
+	    {
+		    Console.WriteLine(response.Message);
+	    }
+    }
+
+    private void WriteLicenseInfo(LicenseDto license)
     {
 	    Console.WriteLine("License infos:");
 	    Console.WriteLine($"   Company name: {license.Customer.Company_name}");
@@ -483,7 +508,7 @@ class Program
 	    Console.WriteLine($"   Limitations: {string.Join(", ", license.License_limitations.Select(l => $"{l.Limitation_name} = {l.Limit}"))}");
     }
 
-	void WriteLicenseInfo(LicenseInfoDto licenseInfo)
+	private void WriteLicenseInfo(LicenseInfoDto licenseInfo)
     {
 	    Console.WriteLine("License infos:");
 	    Console.WriteLine($"   Company name: {licenseInfo.Customer.Company_name}");
