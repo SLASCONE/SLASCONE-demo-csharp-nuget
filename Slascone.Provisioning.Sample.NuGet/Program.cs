@@ -507,9 +507,27 @@ class Program
 
 	    if (response.StatusCode == 200)
 	    {
-		    WriteLicenseInfo(response.Result);
-	    }
-	    else if (response.StatusCode == 400)
+		    var licenseInfo = response.Result;
+
+		    WriteLicenseInfo(licenseInfo);
+
+		    if (licenseInfo.Created_date_utc.HasValue)
+		    {
+			    // Check how old the stored license info is
+			    var licenseInfoAge = (DateTime.Now - licenseInfo.Created_date_utc.Value).Days;
+			    Console.WriteLine($"   Offline license info is {licenseInfoAge} days old.");
+
+				if (0 < licenseInfoAge && licenseInfo.Freeride.HasValue)
+			    {
+				    Console.Write($"   Freeride period: {licenseInfo.Freeride.Value}; ");
+				    if (licenseInfoAge <= licenseInfo.Freeride.Value)
+					    Console.WriteLine("License is valid because the defined freeride period is adhered to.");
+				    else
+					    Console.WriteLine("License invalid due to freeride period exceeded.");
+			    }
+		    }
+		}
+		else if (response.StatusCode == 400)
 	    {
 		    Console.WriteLine(response.Message);
 	    }
@@ -537,7 +555,7 @@ class Program
 
 	private void WriteLicenseInfo(LicenseInfoDto licenseInfo)
     {
-	    Console.WriteLine("License infos:");
+	    Console.WriteLine($"License infos (Retrieved {licenseInfo.Created_date_utc.Value}):");
 	    Console.WriteLine($"   Company name: {licenseInfo.Customer.Company_name}");
 
 	    // Handle license info
