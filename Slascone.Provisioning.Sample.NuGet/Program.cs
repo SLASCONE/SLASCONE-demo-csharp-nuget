@@ -3,6 +3,7 @@ using Slascone.Client;
 using System.Xml;
 using Slascone.Client.DeviceInfos;
 using System.Reflection;
+using System.Text;
 
 namespace Slascone.Provisioning.Sample.NuGet;
 
@@ -73,6 +74,7 @@ class Program
 			Console.WriteLine("10: Read offline license info (only available after at least one license heart beat)");
 			Console.WriteLine("11: Validate license file");
 			Console.WriteLine("12: Print device infos");
+			Console.WriteLine("13: Print virtualization/cloud environment infos");
 			Console.WriteLine("x: Exit demo app");
 
 			Console.Write("> ");
@@ -129,6 +131,10 @@ class Program
 						Console.Write(WindowsDeviceInfos.LogDeviceInfos());
 					if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 						Console.Write(LinuxDeviceInfos.LogDeviceInfos());
+					break;
+
+				case "13":
+					Console.Write(await pr.LogVirtualizationInfos());
 					break;
 			}
 		} while (!"x".Equals(input, StringComparison.InvariantCultureIgnoreCase));
@@ -606,7 +612,49 @@ class Program
         return isValid;
     }
 
-    private static void ReportError(string action, ErrorResultObjects error)
+    private async Task<string> LogVirtualizationInfos()
+    {
+	    var sb = new StringBuilder();
+
+	    var awsEc2Infos = new AwsEc2Infos();
+
+		var awsEc2Detected = await awsEc2Infos.DetectAwsEcs();
+
+		if (awsEc2Detected)
+		{
+			sb.AppendLine("Running on an AWS EC2 instance:");
+			sb.AppendLine($"    Instance Id: {awsEc2Infos.InstanceId}");
+			sb.AppendLine($"    Instance Type: {awsEc2Infos.InstanceType}");
+			sb.AppendLine($"    Instance Region: {awsEc2Infos.Region}");
+			sb.AppendLine($"    Instance Version: {awsEc2Infos.Version}");
+		}
+
+		var azureVmInfos = new AzureVmInfos();
+		var azureVmDetected = await azureVmInfos.DetectAzureVm();
+
+		if (azureVmDetected)
+		{
+			Console.WriteLine("Running on an Azure VM.");
+			Console.WriteLine($"    Name: {azureVmInfos.Name}");
+			Console.WriteLine($"    Vm Id: {azureVmInfos.VmId}");
+			Console.WriteLine($"    Resource Id: {azureVmInfos.ResourceId}");
+			Console.WriteLine($"    Location: {azureVmInfos.Location}");
+			Console.WriteLine($"    Version: {azureVmInfos.Version}");
+			Console.WriteLine($"    Provider: {azureVmInfos.Provider}");
+			Console.WriteLine($"    Publisher: {azureVmInfos.Publisher}");
+			Console.WriteLine($"    Vm size: {azureVmInfos.VmSize}");
+			Console.WriteLine($"    License type: {azureVmInfos.LicenseType}");
+		}
+
+		if (!awsEc2Detected && !azureVmDetected)
+		{
+			sb.AppendLine("No virtualization or cloud environment detected.");
+		}
+
+	    return sb.ToString();
+    }
+
+	private static void ReportError(string action, ErrorResultObjects error)
     {
 	    if (null == error)
 		    return;

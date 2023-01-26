@@ -111,6 +111,7 @@ public class Helper
 
 	    var sb = new StringBuilder();
 	    sb.AppendLine($"Certificate Infos:")
+		    .AppendLine($"    Name: {signatureKeyCert.FriendlyName}")
 		    .AppendLine($"    Subject: {signatureKeyCert.Subject}")
 		    .AppendLine($"    Issuer: {signatureKeyCert.Issuer}")
 		    .AppendLine($"    Not before: {signatureKeyCert.NotBefore}")
@@ -134,5 +135,18 @@ public class Helper
         size = f.Read(data, 0, size);
         f.Close();
         return data;
+	}
+
+	private static async void Bla()
+    {
+	    var client = new HttpClient();
+	    var requestTokenUri = new Uri("169.254.169.254/latest/api/token");
+	    var request = new HttpRequestMessage(HttpMethod.Put, requestTokenUri);
+	    request.Headers.Add("X-aws-ec2-metadata-token-ttl-seconds", "21600");
+	    var response = await client.SendAsync(request);
+	    if (response.IsSuccessStatusCode)
+	    {
+		    var token = await response.Content.ReadAsStringAsync();
+	    }
     }
 }
