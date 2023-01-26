@@ -646,7 +646,15 @@ class Program
 			Console.WriteLine($"    License type: {azureVmInfos.LicenseType}");
 		}
 
-		if (!awsEc2Detected && !azureVmDetected)
+		var virtualizationInfos = new VirtualizationInfos();
+		var virtualizationDetected = await virtualizationInfos.DetectVirtualization();
+
+		if (virtualizationDetected)
+		{
+			Console.WriteLine($"Virtualization detected: {virtualizationInfos.VirtualizationType}");
+		}
+
+		if (!awsEc2Detected && !azureVmDetected && !virtualizationDetected)
 		{
 			sb.AppendLine("No virtualization or cloud environment detected.");
 		}
