@@ -3,6 +3,7 @@ using Slascone.Client;
 using System.Xml;
 using Slascone.Client.DeviceInfos;
 using System.Reflection;
+using System.Text;
 
 namespace Slascone.Provisioning.Sample.NuGet;
 
@@ -73,6 +74,7 @@ class Program
 			Console.WriteLine("10: Read offline license info (only available after at least one license heart beat)");
 			Console.WriteLine("11: Validate license file");
 			Console.WriteLine("12: Print device infos");
+			Console.WriteLine("13: Print virtualization/cloud environment infos");
 			Console.WriteLine("x: Exit demo app");
 
 			Console.Write("> ");
@@ -129,6 +131,10 @@ class Program
 						Console.Write(WindowsDeviceInfos.LogDeviceInfos());
 					if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 						Console.Write(LinuxDeviceInfos.LogDeviceInfos());
+					break;
+
+				case "13":
+					Console.Write(await pr.LogVirtualizationInfos());
 					break;
 			}
 		} while (!"x".Equals(input, StringComparison.InvariantCultureIgnoreCase));
@@ -606,7 +612,63 @@ class Program
         return isValid;
     }
 
-    private static void ReportError(string action, ErrorResultObjects error)
+    private async Task<string> LogVirtualizationInfos()
+    {
+	    var sb = new StringBuilder();
+
+        var awsEc2Infos = new AwsEc2Infos() { TimeoutSeconds = 2 };
+        var detectAws = new Task<bool>(() => awsEc2Infos.DetectAwsEcs().Result);
+        detectAws.Start();
+        var azureVmInfos = new AzureVmInfos() { TimeoutSeconds = 2 };
+        var detectAzure = new Task<bool>(() => azureVmInfos.DetectAzureVm().Result);
+        detectAzure.Start();
+        var virtualizationInfos = new VirtualizationInfos();
+        var detectVirtualization = new Task<bool>(() => virtualizationInfos.DetectVirtualization().Result);
+        detectVirtualization.Start();
+
+        Task.WaitAll(detectAws, detectAzure, detectVirtualization);
+
+        var awsEc2Detected = detectAws.Result;
+        var azureVmDetected = detectAzure.Result;
+        var virtualizationDetected = detectVirtualization.Result;
+
+        if (awsEc2Detected)
+		{
+			sb.AppendLine("Running on an AWS EC2 instance:");
+			sb.AppendLine($"    Instance Id: {awsEc2Infos.InstanceId}");
+			sb.AppendLine($"    Instance Type: {awsEc2Infos.InstanceType}");
+			sb.AppendLine($"    Instance Region: {awsEc2Infos.Region}");
+			sb.AppendLine($"    Instance Version: {awsEc2Infos.Version}");
+		}
+
+		if (azureVmDetected)
+		{
+			sb.AppendLine("Running on an Azure VM.");
+			sb.AppendLine($"    Name: {azureVmInfos.Name}");
+			sb.AppendLine($"    Vm Id: {azureVmInfos.VmId}");
+			sb.AppendLine($"    Resource Id: {azureVmInfos.ResourceId}");
+			sb.AppendLine($"    Location: {azureVmInfos.Location}");
+			sb.AppendLine($"    Version: {azureVmInfos.Version}");
+			sb.AppendLine($"    Provider: {azureVmInfos.Provider}");
+			sb.AppendLine($"    Publisher: {azureVmInfos.Publisher}");
+			sb.AppendLine($"    Vm size: {azureVmInfos.VmSize}");
+			sb.AppendLine($"    License type: {azureVmInfos.LicenseType}");
+		}
+
+		if (virtualizationDetected)
+		{
+			sb.AppendLine($"Virtualization detected: {virtualizationInfos.VirtualizationType}");
+		}
+
+		if (!awsEc2Detected && !azureVmDetected && !virtualizationDetected)
+		{
+			sb.AppendLine("No virtualization or cloud environment detected.");
+		}
+
+	    return sb.ToString();
+    }
+
+	private static void ReportError(string action, ErrorResultObjects error)
     {
 	    if (null == error)
 		    return;
