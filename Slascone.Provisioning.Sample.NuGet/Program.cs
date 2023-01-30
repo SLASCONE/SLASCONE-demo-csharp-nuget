@@ -643,21 +643,21 @@ class Program
 
 		if (azureVmDetected)
 		{
-			Console.WriteLine("Running on an Azure VM.");
-			Console.WriteLine($"    Name: {azureVmInfos.Name}");
-			Console.WriteLine($"    Vm Id: {azureVmInfos.VmId}");
-			Console.WriteLine($"    Resource Id: {azureVmInfos.ResourceId}");
-			Console.WriteLine($"    Location: {azureVmInfos.Location}");
-			Console.WriteLine($"    Version: {azureVmInfos.Version}");
-			Console.WriteLine($"    Provider: {azureVmInfos.Provider}");
-			Console.WriteLine($"    Publisher: {azureVmInfos.Publisher}");
-			Console.WriteLine($"    Vm size: {azureVmInfos.VmSize}");
-			Console.WriteLine($"    License type: {azureVmInfos.LicenseType}");
+			sb.AppendLine("Running on an Azure VM.");
+			sb.AppendLine($"    Name: {azureVmInfos.Name}");
+			sb.AppendLine($"    Vm Id: {azureVmInfos.VmId}");
+			sb.AppendLine($"    Resource Id: {azureVmInfos.ResourceId}");
+			sb.AppendLine($"    Location: {azureVmInfos.Location}");
+			sb.AppendLine($"    Version: {azureVmInfos.Version}");
+			sb.AppendLine($"    Provider: {azureVmInfos.Provider}");
+			sb.AppendLine($"    Publisher: {azureVmInfos.Publisher}");
+			sb.AppendLine($"    Vm size: {azureVmInfos.VmSize}");
+			sb.AppendLine($"    License type: {azureVmInfos.LicenseType}");
 		}
 
 		if (virtualizationDetected)
 		{
-			Console.WriteLine($"Virtualization detected: {virtualizationInfos.VirtualizationType}");
+			sb.AppendLine($"Virtualization detected: {virtualizationInfos.VirtualizationType}");
 		}
 
 		if (!awsEc2Detected && !azureVmDetected && !virtualizationDetected)
