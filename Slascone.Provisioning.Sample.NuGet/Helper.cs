@@ -12,7 +12,6 @@ public class Helper
 {
     static Helper()
     {
-
     }
 
     #region Main values - Fill according to your environment
@@ -40,21 +39,49 @@ public class Helper
 
 	#endregion
 
+	private static string UniqueDeviceId;
+
 	/// <summary>
 	/// Get a unique device id based on the system
 	/// </summary>
 	/// <returns>UUID via string</returns>
 	public static string GetUniqueDeviceId()
 	{
-		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        if (!string.IsNullOrEmpty(UniqueDeviceId))
+            return UniqueDeviceId;
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 		{
-			return WindowsDeviceInfos.ComputerSystemProductId;
+			return UniqueDeviceId = WindowsDeviceInfos.ComputerSystemProductId;
 		}
 
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 		{
-			return BitConverter.ToString(MD5.HashData(UTF8Encoding.UTF8.GetBytes(string.Concat(LinuxDeviceInfos.MachineId,
-				LinuxDeviceInfos.RootDeviceSerial))));
+            var awsEc2Infos = new AwsEc2Infos(){ TimeoutSeconds = 2 };
+            var detectAws = new Task<bool>(() => awsEc2Infos.DetectAwsEcs().Result);
+			detectAws.Start();
+            var azureVmInfos = new AzureVmInfos(){ TimeoutSeconds = 2 };
+            var detectAzure = new Task<bool>(() => azureVmInfos.DetectAzureVm().Result);
+			detectAzure.Start();
+			var virtualizationInfos = new VirtualizationInfos();
+			var detectVirtualization = new Task<bool>(() => virtualizationInfos.DetectVirtualization().Result);
+			detectVirtualization.Start();
+
+			Task.WaitAll(detectAws, detectAzure, detectVirtualization);
+
+			var awsDetected = detectAws.Result;
+			var azureDetected = detectAzure.Result;
+			var virtualizationDetected = detectVirtualization.Result;
+
+            string deviceId;
+            if (awsDetected)
+                deviceId = awsEc2Infos.InstanceId;
+            else if (azureDetected)
+                deviceId = azureVmInfos.VmId;
+            else
+                deviceId = string.Concat(LinuxDeviceInfos.MachineId, LinuxDeviceInfos.RootDeviceSerial);
+
+            return UniqueDeviceId = BitConverter.ToString(MD5.HashData(UTF8Encoding.UTF8.GetBytes(deviceId)));
 		}
 
 		throw new NotSupportedException("GetUniqueDeviceId() is supported only on Windows and Linux");
@@ -136,17 +163,4 @@ public class Helper
         f.Close();
         return data;
 	}
-
-	private static async void Bla()
-    {
-	    var client = new HttpClient();
-	    var requestTokenUri = new Uri("169.254.169.254/latest/api/token");
-	    var request = new HttpRequestMessage(HttpMethod.Put, requestTokenUri);
-	    request.Headers.Add("X-aws-ec2-metadata-token-ttl-seconds", "21600");
-	    var response = await client.SendAsync(request);
-	    if (response.IsSuccessStatusCode)
-	    {
-		    var token = await response.Content.ReadAsStringAsync();
-	    }
-    }
 }

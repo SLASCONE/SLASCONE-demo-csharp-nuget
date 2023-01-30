@@ -616,11 +616,23 @@ class Program
     {
 	    var sb = new StringBuilder();
 
-	    var awsEc2Infos = new AwsEc2Infos();
+        var awsEc2Infos = new AwsEc2Infos() { TimeoutSeconds = 2 };
+        var detectAws = new Task<bool>(() => awsEc2Infos.DetectAwsEcs().Result);
+        detectAws.Start();
+        var azureVmInfos = new AzureVmInfos() { TimeoutSeconds = 2 };
+        var detectAzure = new Task<bool>(() => azureVmInfos.DetectAzureVm().Result);
+        detectAzure.Start();
+        var virtualizationInfos = new VirtualizationInfos();
+        var detectVirtualization = new Task<bool>(() => virtualizationInfos.DetectVirtualization().Result);
+        detectVirtualization.Start();
 
-		var awsEc2Detected = await awsEc2Infos.DetectAwsEcs();
+        Task.WaitAll(detectAws, detectAzure, detectVirtualization);
 
-		if (awsEc2Detected)
+        var awsEc2Detected = detectAws.Result;
+        var azureVmDetected = detectAzure.Result;
+        var virtualizationDetected = detectVirtualization.Result;
+
+        if (awsEc2Detected)
 		{
 			sb.AppendLine("Running on an AWS EC2 instance:");
 			sb.AppendLine($"    Instance Id: {awsEc2Infos.InstanceId}");
@@ -628,9 +640,6 @@ class Program
 			sb.AppendLine($"    Instance Region: {awsEc2Infos.Region}");
 			sb.AppendLine($"    Instance Version: {awsEc2Infos.Version}");
 		}
-
-		var azureVmInfos = new AzureVmInfos();
-		var azureVmDetected = await azureVmInfos.DetectAzureVm();
 
 		if (azureVmDetected)
 		{
@@ -645,9 +654,6 @@ class Program
 			Console.WriteLine($"    Vm size: {azureVmInfos.VmSize}");
 			Console.WriteLine($"    License type: {azureVmInfos.LicenseType}");
 		}
-
-		var virtualizationInfos = new VirtualizationInfos();
-		var virtualizationDetected = await virtualizationInfos.DetectVirtualization();
 
 		if (virtualizationDetected)
 		{
