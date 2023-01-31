@@ -134,7 +134,7 @@ class Program
 					break;
 
 				case "13":
-					Console.Write(await pr.LogVirtualizationInfos());
+					Console.Write(pr.LogVirtualizationInfos());
 					break;
 			}
 		} while (!"x".Equals(input, StringComparison.InvariantCultureIgnoreCase));
@@ -612,7 +612,7 @@ class Program
         return isValid;
     }
 
-    private async Task<string> LogVirtualizationInfos()
+    private string LogVirtualizationInfos()
     {
 	    var sb = new StringBuilder();
 
