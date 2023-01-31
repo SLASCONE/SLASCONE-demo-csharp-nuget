@@ -41,53 +41,58 @@ public class Helper
 
 	private static string UniqueDeviceId;
 
-	/// <summary>
-	/// Get a unique device id based on the system
-	/// </summary>
-	/// <returns>UUID via string</returns>
-	public static string GetUniqueDeviceId()
-	{
+    /// <summary>
+    /// Get a unique device id based on the system
+    /// </summary>
+    /// <returns>UUID via string</returns>
+    public static string GetUniqueDeviceId()
+    {
         if (!string.IsNullOrEmpty(UniqueDeviceId))
             return UniqueDeviceId;
 
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-		{
-			return UniqueDeviceId = WindowsDeviceInfos.ComputerSystemProductId;
-		}
+        var awsEc2Infos = new AwsEc2Infos() { TimeoutSeconds = 2 };
+        var detectAws = new Task<bool>(() => awsEc2Infos.DetectAwsEcs().Result);
+        detectAws.Start();
+        var azureVmInfos = new AzureVmInfos() { TimeoutSeconds = 2 };
+        var detectAzure = new Task<bool>(() => azureVmInfos.DetectAzureVm().Result);
+        detectAzure.Start();
+        var virtualizationInfos = new VirtualizationInfos();
+        var detectVirtualization = new Task<bool>(() => virtualizationInfos.DetectVirtualization().Result);
+        detectVirtualization.Start();
 
-		if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-		{
-            var awsEc2Infos = new AwsEc2Infos(){ TimeoutSeconds = 2 };
-            var detectAws = new Task<bool>(() => awsEc2Infos.DetectAwsEcs().Result);
-			detectAws.Start();
-            var azureVmInfos = new AzureVmInfos(){ TimeoutSeconds = 2 };
-            var detectAzure = new Task<bool>(() => azureVmInfos.DetectAzureVm().Result);
-			detectAzure.Start();
-			var virtualizationInfos = new VirtualizationInfos();
-			var detectVirtualization = new Task<bool>(() => virtualizationInfos.DetectVirtualization().Result);
-			detectVirtualization.Start();
+        Task.WaitAll(detectAws, detectAzure, detectVirtualization);
 
-			Task.WaitAll(detectAws, detectAzure, detectVirtualization);
+        var awsDetected = detectAws.Result;
+        var azureDetected = detectAzure.Result;
+        var virtualizationDetected = detectVirtualization.Result;
 
-			var awsDetected = detectAws.Result;
-			var azureDetected = detectAzure.Result;
-			var virtualizationDetected = detectVirtualization.Result;
+        if (awsDetected)
+        {
+            return UniqueDeviceId = awsEc2Infos.InstanceId;
+        }
+        else if (azureDetected)
+        {
+            return UniqueDeviceId = azureVmInfos.VmId;
+        }
+        else
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return UniqueDeviceId = WindowsDeviceInfos.ComputerSystemProductId;
+            }
 
-            string deviceId;
-            if (awsDetected)
-                deviceId = awsEc2Infos.InstanceId;
-            else if (azureDetected)
-                deviceId = azureVmInfos.VmId;
-            else
-                deviceId = string.Concat(LinuxDeviceInfos.MachineId, LinuxDeviceInfos.RootDeviceSerial);
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                var deviceId = string.Concat(LinuxDeviceInfos.MachineId, LinuxDeviceInfos.RootDeviceSerial);
 
-            return UniqueDeviceId = BitConverter.ToString(MD5.HashData(UTF8Encoding.UTF8.GetBytes(deviceId)));
-		}
+                return UniqueDeviceId = BitConverter.ToString(MD5.HashData(UTF8Encoding.UTF8.GetBytes(deviceId)));
+            }
 
-		throw new NotSupportedException("GetUniqueDeviceId() is supported only on Windows and Linux");
-	}
+            throw new NotSupportedException("GetUniqueDeviceId() is supported only on Windows and Linux");
+        }
+    }
 
-	public static string GetOperatingSystem()
+    public static string GetOperatingSystem()
     {
 	    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 	    {
