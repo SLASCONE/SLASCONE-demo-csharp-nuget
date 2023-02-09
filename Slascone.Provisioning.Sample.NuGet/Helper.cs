@@ -138,20 +138,42 @@ public class Helper
     public static string LogCertificate()
     {
 	    byte[] rawData = ReadFile(Certificate);
-	    // Load the certificate into an X509Certificate object.
-	    var signatureKeyCert = new X509Certificate2(rawData);
+        // Load the certificate into an X509Certificate object.
+        using (var signatureKeyCert = new X509Certificate2(rawData))
+        {
+	        var sb = new StringBuilder();
+	        sb.AppendLine($"Certificate Infos:")
+		        .AppendLine($"    Name: {signatureKeyCert.FriendlyName}")
+		        .AppendLine($"    Subject: {signatureKeyCert.Subject}")
+		        .AppendLine($"    Issuer: {signatureKeyCert.Issuer}")
+		        .AppendLine($"    Not before: {signatureKeyCert.NotBefore}")
+		        .AppendLine($"    Not after: {signatureKeyCert.NotAfter}")
+		        .AppendLine($"    Signature algorithm: {signatureKeyCert.SignatureAlgorithm.FriendlyName}")
+		        .AppendLine($"    Serial number: {signatureKeyCert.SerialNumber}")
+		        .AppendLine($"    Thumbprint: {signatureKeyCert.Thumbprint}");
 
-	    var sb = new StringBuilder();
-	    sb.AppendLine($"Certificate Infos:")
-		    .AppendLine($"    Name: {signatureKeyCert.FriendlyName}")
-		    .AppendLine($"    Subject: {signatureKeyCert.Subject}")
-		    .AppendLine($"    Issuer: {signatureKeyCert.Issuer}")
-		    .AppendLine($"    Not before: {signatureKeyCert.NotBefore}")
-		    .AppendLine($"    Not after: {signatureKeyCert.NotAfter}")
-		    .AppendLine($"    Signature algorithm: {signatureKeyCert.SignatureAlgorithm.FriendlyName}")
-		    .AppendLine($"    Serial number: {signatureKeyCert.SerialNumber}")
-		    .AppendLine($"    Thumbprint: {signatureKeyCert.Thumbprint}");
-	    return sb.ToString();
+	        if (signatureKeyCert.Verify())
+	        {
+		        sb.AppendLine("    Certificate is verified.");
+		        sb.AppendLine("    Issuers of the chain of trust:");
+
+		        using (var chainOfTrust = new X509Chain())
+		        {
+			        chainOfTrust.Build(signatureKeyCert);
+			        foreach (var chainElement in chainOfTrust.ChainElements)
+			        {
+				        using (var certificate = chainElement.Certificate)
+				        {
+					        sb.AppendLine($"     - {certificate.Issuer}");
+				        }
+			        }
+		        }
+	        }
+	        else
+		        sb.AppendLine("    Certificate is not verified.");
+
+			return sb.ToString();
+        }
     }
 
     /// <summary>

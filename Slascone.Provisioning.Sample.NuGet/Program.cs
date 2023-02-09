@@ -55,8 +55,6 @@ class Program
 		Console.WriteLine();
 		Console.WriteLine($"Unique Client-Id for this device: {Helper.GetUniqueDeviceId()}");
 		Console.WriteLine($"Operating system: {Helper.GetOperatingSystem()}");
-		if (2 == Helper.SignatureValidationMode)
-			Console.WriteLine(Helper.LogCertificate());
 
 		string input;
 		do
@@ -71,10 +69,11 @@ class Program
 			Console.WriteLine("7: Lookup licenses");
 			Console.WriteLine("8: Open session");
 			Console.WriteLine("9: Close session");
-			Console.WriteLine("10: Read offline license info (only available after at least one license heart beat)");
-			Console.WriteLine("11: Validate license file");
-			Console.WriteLine("12: Print device infos");
-			Console.WriteLine("13: Print virtualization/cloud environment infos");
+			Console.WriteLine("10: Print certificate info");
+			Console.WriteLine("11: Read offline license info (only available after at least one license heart beat)");
+			Console.WriteLine("12: Validate license file");
+			Console.WriteLine("13: Print device infos");
+			Console.WriteLine("14: Print virtualization/cloud environment infos");
 			Console.WriteLine("x: Exit demo app");
 
 			Console.Write("> ");
@@ -119,21 +118,28 @@ class Program
 					break;
 
 				case "10":
-					pr.OfflineLicenseInfoExample();
+					if (2 == Helper.SignatureValidationMode)
+						Console.WriteLine(Helper.LogCertificate());
+					else
+						Console.WriteLine("Signature validation not active.");
 					break;
 
 				case "11":
-					IsLicenseFileSignatureValid(@"../../../Assets/OfflineLicenseFile.xml");
+					pr.OfflineLicenseInfoExample();
 					break;
 
 				case "12":
+					IsLicenseFileSignatureValid(@"../../../Assets/OfflineLicenseFile.xml");
+					break;
+
+				case "13":
 					if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 						Console.Write(WindowsDeviceInfos.LogDeviceInfos());
 					if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 						Console.Write(LinuxDeviceInfos.LogDeviceInfos());
 					break;
 
-				case "13":
+				case "14":
 					Console.Write(pr.LogVirtualizationInfos());
 					break;
 			}
