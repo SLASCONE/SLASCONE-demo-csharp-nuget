@@ -3,6 +3,8 @@ using Slascone.Client;
 using System.Xml;
 using Slascone.Client.DeviceInfos;
 using System.Reflection;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace Slascone.Provisioning.Sample.NuGet;
@@ -29,8 +31,15 @@ class Program
 				Helper.IsvId,
 				Helper.ProvisioningKey,
 				Helper.SignatureValidationMode,
-				Helper.SymmetricEncryptionKey,
-				Helper.Certificate);
+				Helper.SymmetricEncryptionKey);
+
+		using (var rsa = RSA.Create())
+		{
+			rsa.ImportFromPem(Helper.SignaturePubKeyPem.ToCharArray());
+			_slasconeClientV2.SetSignaturePublicKey(new PublicKey(rsa));
+		}
+
+		_slasconeClientV2.SetCheckHttpsCertificate();
 
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 		{
@@ -69,7 +78,7 @@ class Program
 			Console.WriteLine("7: Lookup licenses");
 			Console.WriteLine("8: Open session");
 			Console.WriteLine("9: Close session");
-			Console.WriteLine("10: Print certificate info");
+			Console.WriteLine("10: Print https chain of trust info");
 			Console.WriteLine("11: Read offline license info (only available after at least one license heart beat)");
 			Console.WriteLine("12: Validate license file");
 			Console.WriteLine("13: Print device infos");
@@ -118,10 +127,11 @@ class Program
 					break;
 
 				case "10":
-					if (2 == Helper.SignatureValidationMode)
-						Console.WriteLine(Helper.LogCertificate());
-					else
-						Console.WriteLine("Signature validation not active.");
+					Console.Write(new StringBuilder()
+						.AppendLine("Chain of trust issuers:")
+						.Append(string.Concat(pr._slasconeClientV2.HttpsChainOfTrustIssuers.Select(issuer => $" - {issuer}{Environment.NewLine}")))
+						.ToString()
+					);
 					break;
 
 				case "11":
@@ -144,7 +154,6 @@ class Program
 					break;
 			}
 		} while (!"x".Equals(input, StringComparison.InvariantCultureIgnoreCase));
-
 	}
 
 	private async Task ActivationExample()
@@ -330,13 +339,17 @@ class Program
 
 	private async Task ConsumptionHeartbeatExample()
 	{
-		var consumptionHeartbeat = new FullConsumptionHeartbeatDto();
-		consumptionHeartbeat.Client_id = Helper.GetUniqueDeviceId();
-		consumptionHeartbeat.Consumption_heartbeat = new List<ConsumptionHeartbeatValueDto>();
+		var consumptionHeartbeat = new FullConsumptionHeartbeatDto
+		{
+			Client_id = Helper.GetUniqueDeviceId(),
+			Consumption_heartbeat = new List<ConsumptionHeartbeatValueDto>()
+		};
 
-		var consumptionHeartbeatValue1 = new ConsumptionHeartbeatValueDto();
-		consumptionHeartbeatValue1.Limitation_id = Guid.Parse("00cf2984-d71a-4c66-9f49-08da833189e3");
-		consumptionHeartbeatValue1.Value = 1;
+		var consumptionHeartbeatValue1 = new ConsumptionHeartbeatValueDto
+		{
+			Limitation_id = Guid.Parse("00cf2984-d71a-4c66-9f49-08da833189e3"),
+			Value = 1
+		};
 		consumptionHeartbeat.Consumption_heartbeat.Add(consumptionHeartbeatValue1);
 
 		try
@@ -596,7 +609,6 @@ class Program
         //Signature Validation of Offline License XML
         XmlDocument xmlDoc = new XmlDocument();
         //Load an XML file into the XmlDocument object.
-        xmlDoc.PreserveWhitespace = true;
         xmlDoc.Load(licenseFile);
         bool isValid = false;
         try

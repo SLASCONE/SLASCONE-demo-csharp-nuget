@@ -34,8 +34,17 @@ public class Helper
     public const int SignatureValidationMode = 2;
     //Only for symmetric encryption
     public const string SymmetricEncryptionKey = "NfEpJ2DFfgczdYqOjvmlgP2O/4VlqmRHXNE9xDXbqZcOwXTbH3TFeBAKKbEzga7D42bmxuQPK5gGEseNNpFRekd/Kf059rff/N4phalkP25zVqH3VZIOlmot4jEeNr0m";
-    //Only for assymetric encryption - The path to the certificate.
-    public const string Certificate = @"../../../Assets/signature_pub_key.pfx";
+    //Only for assymetric encryption - the public key
+    public const string SignaturePubKeyPem =
+@"-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwpigzm+cZIyw6x253YRD
+mroGQyo0rO9qpOdbNAkE/FMSX+At5CQT/Cyr0eZTo2h+MO5gn5a6dwg2SYB/K1Yt
+yuiKqnaEUfoPnG51KLrj8hi9LoZyIenfsQnxPz+r8XGCUPeS9MhBEVvT4ba0x9Ew
+R+krU87VqfI3KNpFQVdLPaZxN4STTEZaet7nReeNtnnZFYaUt5XeNPB0b0rGfrps
+y7drmZz81dlWoRcLrBRpkf6XrOTX4yFxe/3HJ8mpukuvdweUBFoQ0xOHmG9pNQ31
+AHGtgLYGjbKcW4xYmpDGl0txfcipAr1zMj7X3oCO9lHcFRnXdzx+TTeJYxQX2XVb
+hQIDAQAB
+-----END PUBLIC KEY-----";
 
 	#endregion
 
@@ -113,13 +122,11 @@ public class Helper
     /// <returns>True if Signature is valid. False if Signature is invalid.</returns>
     public static bool IsFileSignatureValid(XmlDocument licenseXml)
     {
-        byte[] rawData = ReadFile(Certificate);
-        // Load the certificate into an X509Certificate object.
-        var signatureKeyCert = new X509Certificate2(rawData);
-
-        using (RSA rsa = signatureKeyCert.GetRSAPublicKey())
-        {
-            SignedXml signedXml = new SignedXml(licenseXml);
+		using (var rsa = RSA.Create())
+		{
+			rsa.ImportFromPem(Helper.SignaturePubKeyPem.ToCharArray());
+            
+			SignedXml signedXml = new SignedXml(licenseXml);
             XmlNodeList nodeList = licenseXml.GetElementsByTagName("Signature");
 
             signedXml.LoadXml((XmlElement)nodeList[0]);
@@ -134,60 +141,4 @@ public class Helper
             
         }
     }
-
-    public static string LogCertificate()
-    {
-	    byte[] rawData = ReadFile(Certificate);
-        // Load the certificate into an X509Certificate object.
-        using (var signatureKeyCert = new X509Certificate2(rawData))
-        {
-	        var sb = new StringBuilder();
-	        sb.AppendLine($"Certificate Infos:")
-		        .AppendLine($"    Name: {signatureKeyCert.FriendlyName}")
-		        .AppendLine($"    Subject: {signatureKeyCert.Subject}")
-		        .AppendLine($"    Issuer: {signatureKeyCert.Issuer}")
-		        .AppendLine($"    Not before: {signatureKeyCert.NotBefore}")
-		        .AppendLine($"    Not after: {signatureKeyCert.NotAfter}")
-		        .AppendLine($"    Signature algorithm: {signatureKeyCert.SignatureAlgorithm.FriendlyName}")
-		        .AppendLine($"    Serial number: {signatureKeyCert.SerialNumber}")
-		        .AppendLine($"    Thumbprint: {signatureKeyCert.Thumbprint}");
-
-	        if (signatureKeyCert.Verify())
-	        {
-		        sb.AppendLine("    Certificate is verified.");
-		        sb.AppendLine("    Issuers of the chain of trust:");
-
-		        using (var chainOfTrust = new X509Chain())
-		        {
-			        chainOfTrust.Build(signatureKeyCert);
-			        foreach (var chainElement in chainOfTrust.ChainElements)
-			        {
-				        using (var certificate = chainElement.Certificate)
-				        {
-					        sb.AppendLine($"     - {certificate.Issuer}");
-				        }
-			        }
-		        }
-	        }
-	        else
-		        sb.AppendLine("    Certificate is not verified.");
-
-			return sb.ToString();
-        }
-    }
-
-    /// <summary>
-	/// Read a File
-	/// </summary>
-	/// <param name="fileName">file name</param>
-	/// <returns></returns>
-	private static byte[] ReadFile(string fileName)
-    {
-        FileStream f = new FileStream(fileName, FileMode.Open, FileAccess.Read);
-        int size = (int)f.Length;
-        byte[] data = new byte[size];
-        size = f.Read(data, 0, size);
-        f.Close();
-        return data;
-	}
 }
