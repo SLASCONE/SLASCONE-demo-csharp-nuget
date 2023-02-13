@@ -127,19 +127,7 @@ class Program
 					break;
 
 				case "10":
-					Console.Write(new StringBuilder()
-						.AppendLine("Chain of trust infos:")
-						.Append(string.Concat(pr._slasconeClientV2
-								.HttpsChainOfTrust.Select(certInfo =>
-									new StringBuilder()
-										.AppendLine($" * {certInfo.Name}")
-										.AppendLine($"    - Subject: {certInfo.Subject}")
-										.AppendLine($"    - Issuer: {certInfo.Issuer}")
-										.AppendLine($"    - Not before: {certInfo.NotBefore}")
-										.AppendLine($"    - Not after: {certInfo.NotAfter}")
-										.AppendLine($"    - Thumbprint: {certInfo.Thumbprint}")
-										.ToString()))
-							.ToString()));
+					pr.ChainOfTrustExample();
 					break;
 
 				case "11":
@@ -532,6 +520,29 @@ class Program
         {
             Console.WriteLine(ex.Message);
         }
+    }
+
+    private void ChainOfTrustExample()
+    {
+	    var chainOfTrustInfo = _slasconeClientV2.HttpsChainOfTrust;
+
+	    if (null == chainOfTrustInfo)
+	    {
+		    Console.WriteLine("No chain of trust information available. You have to call a API method first!");
+		    return;
+	    }
+
+	    Console.Write(new StringBuilder()
+		    .AppendLine("Chain of trust infos:")
+		    .Append(string.Concat(chainOfTrustInfo.Select(certInfo =>
+				    new StringBuilder().AppendLine((string)$" * {certInfo.Name}")
+					    .AppendLine((string)$"    - Subject: {certInfo.Subject}")
+					    .AppendLine((string)$"    - Issuer: {certInfo.Issuer}")
+					    .AppendLine((string)$"    - Not before: {certInfo.NotBefore}")
+					    .AppendLine((string)$"    - Not after: {certInfo.NotAfter}")
+					    .AppendLine((string)$"    - Thumbprint: {certInfo.Thumbprint}")
+					    .ToString()))
+			    .ToString()));
     }
 
     private void OfflineLicenseInfoExample()
