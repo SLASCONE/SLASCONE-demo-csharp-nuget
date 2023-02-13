@@ -128,10 +128,18 @@ class Program
 
 				case "10":
 					Console.Write(new StringBuilder()
-						.AppendLine("Chain of trust issuers:")
-						.Append(string.Concat(pr._slasconeClientV2.HttpsChainOfTrustIssuers.Select(issuer => $" - {issuer}{Environment.NewLine}")))
-						.ToString()
-					);
+						.AppendLine("Chain of trust infos:")
+						.Append(string.Concat(pr._slasconeClientV2
+								.HttpsChainOfTrust.Select(certInfo =>
+									new StringBuilder()
+										.AppendLine($" * {certInfo.Name}")
+										.AppendLine($"    - Subject: {certInfo.Subject}")
+										.AppendLine($"    - Issuer: {certInfo.Issuer}")
+										.AppendLine($"    - Not before: {certInfo.NotBefore}")
+										.AppendLine($"    - Not after: {certInfo.NotAfter}")
+										.AppendLine($"    - Thumbprint: {certInfo.Thumbprint}")
+										.ToString()))
+							.ToString()));
 					break;
 
 				case "11":
