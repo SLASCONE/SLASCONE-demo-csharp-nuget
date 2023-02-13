@@ -3,6 +3,8 @@ using Slascone.Client;
 using System.Xml;
 using Slascone.Client.DeviceInfos;
 using System.Reflection;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace Slascone.Provisioning.Sample.NuGet;
@@ -29,8 +31,15 @@ class Program
 				Helper.IsvId,
 				Helper.ProvisioningKey,
 				Helper.SignatureValidationMode,
-				Helper.SymmetricEncryptionKey,
-				Helper.Certificate);
+				Helper.SymmetricEncryptionKey);
+
+		using (var rsa = RSA.Create())
+		{
+			rsa.ImportFromPem(Helper.SignaturePubKeyPem.ToCharArray());
+			_slasconeClientV2.SetSignaturePublicKey(new PublicKey(rsa));
+		}
+
+		_slasconeClientV2.SetCheckHttpsCertificate();
 
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 		{
@@ -55,8 +64,6 @@ class Program
 		Console.WriteLine();
 		Console.WriteLine($"Unique Client-Id for this device: {Helper.GetUniqueDeviceId()}");
 		Console.WriteLine($"Operating system: {Helper.GetOperatingSystem()}");
-		if (2 == Helper.SignatureValidationMode)
-			Console.WriteLine(Helper.LogCertificate());
 
 		string input;
 		do
@@ -71,10 +78,11 @@ class Program
 			Console.WriteLine("7: Lookup licenses");
 			Console.WriteLine("8: Open session");
 			Console.WriteLine("9: Close session");
-			Console.WriteLine("10: Read offline license info (only available after at least one license heart beat)");
-			Console.WriteLine("11: Validate license file");
-			Console.WriteLine("12: Print device infos");
-			Console.WriteLine("13: Print virtualization/cloud environment infos");
+			Console.WriteLine("10: Print https chain of trust info");
+			Console.WriteLine("11: Read offline license info (only available after at least one license heart beat)");
+			Console.WriteLine("12: Validate license file");
+			Console.WriteLine("13: Print device infos");
+			Console.WriteLine("14: Print virtualization/cloud environment infos");
 			Console.WriteLine("x: Exit demo app");
 
 			Console.Write("> ");
@@ -119,26 +127,29 @@ class Program
 					break;
 
 				case "10":
-					pr.OfflineLicenseInfoExample();
+					pr.ChainOfTrustExample();
 					break;
 
 				case "11":
-					IsLicenseFileSignatureValid(@"../../../Assets/OfflineLicenseFile.xml");
+					pr.OfflineLicenseInfoExample();
 					break;
 
 				case "12":
+					IsLicenseFileSignatureValid(@"../../../Assets/OfflineLicenseFile.xml");
+					break;
+
+				case "13":
 					if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 						Console.Write(WindowsDeviceInfos.LogDeviceInfos());
 					if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 						Console.Write(LinuxDeviceInfos.LogDeviceInfos());
 					break;
 
-				case "13":
+				case "14":
 					Console.Write(pr.LogVirtualizationInfos());
 					break;
 			}
 		} while (!"x".Equals(input, StringComparison.InvariantCultureIgnoreCase));
-
 	}
 
 	private async Task ActivationExample()
@@ -324,13 +335,17 @@ class Program
 
 	private async Task ConsumptionHeartbeatExample()
 	{
-		var consumptionHeartbeat = new FullConsumptionHeartbeatDto();
-		consumptionHeartbeat.Client_id = Helper.GetUniqueDeviceId();
-		consumptionHeartbeat.Consumption_heartbeat = new List<ConsumptionHeartbeatValueDto>();
+		var consumptionHeartbeat = new FullConsumptionHeartbeatDto
+		{
+			Client_id = Helper.GetUniqueDeviceId(),
+			Consumption_heartbeat = new List<ConsumptionHeartbeatValueDto>()
+		};
 
-		var consumptionHeartbeatValue1 = new ConsumptionHeartbeatValueDto();
-		consumptionHeartbeatValue1.Limitation_id = Guid.Parse("00cf2984-d71a-4c66-9f49-08da833189e3");
-		consumptionHeartbeatValue1.Value = 1;
+		var consumptionHeartbeatValue1 = new ConsumptionHeartbeatValueDto
+		{
+			Limitation_id = Guid.Parse("00cf2984-d71a-4c66-9f49-08da833189e3"),
+			Value = 1
+		};
 		consumptionHeartbeat.Consumption_heartbeat.Add(consumptionHeartbeatValue1);
 
 		try
@@ -507,6 +522,29 @@ class Program
         }
     }
 
+    private void ChainOfTrustExample()
+    {
+	    var chainOfTrustInfo = _slasconeClientV2.HttpsChainOfTrust;
+
+	    if (null == chainOfTrustInfo)
+	    {
+		    Console.WriteLine("No chain of trust information available. You have to call a API method first!");
+		    return;
+	    }
+
+	    Console.Write(new StringBuilder()
+		    .AppendLine("Chain of trust infos:")
+		    .Append(string.Concat(chainOfTrustInfo.Select(certInfo =>
+				    new StringBuilder().AppendLine((string)$" * {certInfo.Name}")
+					    .AppendLine((string)$"    - Subject: {certInfo.Subject}")
+					    .AppendLine((string)$"    - Issuer: {certInfo.Issuer}")
+					    .AppendLine((string)$"    - Not before: {certInfo.NotBefore}")
+					    .AppendLine((string)$"    - Not after: {certInfo.NotAfter}")
+					    .AppendLine((string)$"    - Thumbprint: {certInfo.Thumbprint}")
+					    .ToString()))
+			    .ToString()));
+    }
+
     private void OfflineLicenseInfoExample()
     {
 	    var response = _slasconeClientV2.GetOfflineLicense();
@@ -590,7 +628,6 @@ class Program
         //Signature Validation of Offline License XML
         XmlDocument xmlDoc = new XmlDocument();
         //Load an XML file into the XmlDocument object.
-        xmlDoc.PreserveWhitespace = true;
         xmlDoc.Load(licenseFile);
         bool isValid = false;
         try
