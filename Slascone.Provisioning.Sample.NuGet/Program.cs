@@ -14,7 +14,7 @@ class Program
 	private readonly ISlasconeClientV2 _slasconeClientV2;
 
 	// ID for license
-	private readonly string _license_key = "27180460-29df-4a5a-a0a1-78c85ab6cee0";
+	private readonly string _license_key = "27180460-29df-4a5a-a0a1-78c85ab6cee0";    // CAD - Standard Edition - Floating - Ring Retail Ltd
 
 	// ID for product "BI Server"
 	private readonly Guid _product_id_bi_server = Guid.Parse("47df1df5-bbc8-4b1b-a185-58ddfb1d3271");
@@ -24,6 +24,7 @@ class Program
 
 	private Guid? _token_id = Guid.Empty;
 	private Stack<Guid> _sessionIds = new Stack<Guid>();
+	private IDictionary<Guid, string> _limitationNames = new Dictionary<Guid, string>();
 
 	public Program()
 	{
@@ -36,6 +37,8 @@ class Program
 		using (var rsa = RSA.Create())
 		{
 			rsa.ImportFromPem(Helper.SignaturePubKeyPem.ToCharArray());
+
+			var xml = rsa.ToXmlString(false);
 			_slasconeClientV2.SetSignaturePublicKey(new PublicKey(rsa));
 		}
 
@@ -354,7 +357,16 @@ class Program
 
 			if (result.StatusCode == 200)
 			{
-				Console.WriteLine("Successfully created consumption heartbeat.");
+				foreach (var consumptionDto in result.Result)
+				{
+					var limitation = _limitationNames.TryGetValue(consumptionDto.Limitation_id, out var limitationName)
+						? $"'{limitationName}' ({consumptionDto.Limitation_id})"
+						: consumptionDto.Limitation_id.ToString();
+					if (null != consumptionDto.Transaction_id)
+						Console.WriteLine($"Limitation {limitation}: Remaining: {consumptionDto.Remaining}");
+					else
+						Console.WriteLine($"Limitation {limitation}: Limit reached!");
+				}
 			}
 			else if (result.StatusCode == 409)
 			{
@@ -595,6 +607,7 @@ class Program
 
 	    Console.WriteLine($"   Active features: {string.Join(", ", license.License_features.Where(f => f.Is_active).Select(f => f.Feature_name))}");
 	    Console.WriteLine($"   Limitations: {string.Join(", ", license.License_limitations.Select(l => $"{l.Limitation_name} = {l.Limit}"))}");
+	    _limitationNames = license.License_limitations.ToDictionary(l => l.Limitation_id, l => l.Limitation_name);
     }
 
 	private void WriteLicenseInfo(LicenseInfoDto licenseInfo)
@@ -621,6 +634,7 @@ class Program
 
 	    Console.WriteLine($"   Active features: {string.Join(", ", licenseInfo.Features.Where(f => f.Is_active).Select(f => f.Name))}");
 	    Console.WriteLine($"   Limitations: {string.Join(", ", licenseInfo.Limitations.Select(l => $"{l.Name} = {l.Value}"))}");
+	    _limitationNames = licenseInfo.Limitations.ToDictionary(l => l.Id, l => l.Name);
     }
 
     private static bool IsLicenseFileSignatureValid(string licenseFile)
