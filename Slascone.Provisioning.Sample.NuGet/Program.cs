@@ -16,9 +16,6 @@ class Program
 	// ID for license
 	private readonly string _license_key = "27180460-29df-4a5a-a0a1-78c85ab6cee0";    // CAD - Standard Edition - Floating - Ring Retail Ltd
 
-	// ID for product "BI Server"
-	private readonly Guid _product_id_bi_server = Guid.Parse("47df1df5-bbc8-4b1b-a185-58ddfb1d3271");
-
 	// ID for product "CAD"
 	private readonly Guid _product_id_cad = Guid.Parse("b18657cc-1f7c-43fa-e3a4-08da6fa41ad3");
 
