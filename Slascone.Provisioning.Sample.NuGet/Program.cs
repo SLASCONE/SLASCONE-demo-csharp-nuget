@@ -13,16 +13,11 @@ class Program
 {
 	private readonly ISlasconeClientV2 _slasconeClientV2;
 
-	// ID for license
-	private readonly string _license_key = "27180460-29df-4a5a-a0a1-78c85ab6cee0";    // CAD - Standard Edition - Floating - Ring Retail Ltd
+	// CHANGE these values according to your environment 
+	private readonly string _license_key = "27180460-29df-4a5a-a0a1-78c85ab6cee0";    // Find your own license key at : https://my.slascone.com/licenses                                                                                      
+    private readonly Guid _product_id = Guid.Parse("b18657cc-1f7c-43fa-e3a4-08da6fa41ad3");// Find your own product id key at : https://my.slascone.com/products
 
-	// ID for product "BI Server"
-	private readonly Guid _product_id_bi_server = Guid.Parse("47df1df5-bbc8-4b1b-a185-58ddfb1d3271");
-
-	// ID for product "CAD"
-	private readonly Guid _product_id_cad = Guid.Parse("b18657cc-1f7c-43fa-e3a4-08da6fa41ad3");
-
-	private Guid? _token_id = Guid.Empty;
+    private Guid? _token_id = Guid.Empty;
 	private Stack<Guid> _sessionIds = new Stack<Guid>();
 	private IDictionary<Guid, string> _limitationNames = new Dictionary<Guid, string>();
 
@@ -80,16 +75,16 @@ class Program
 		{
 			Console.WriteLine();
 			Console.WriteLine("1: Activate license (can be done only once per device)");
-			Console.WriteLine("2: Add license heart beat");
-			Console.WriteLine("3: Add analytical heart beat");
+			Console.WriteLine("2: Add license heartbeat");
+			Console.WriteLine("3: Add analytical heartbeat");
 			Console.WriteLine("4: Add usage heart beat");
-			Console.WriteLine("5: Add consumption heart beat");
+			Console.WriteLine("5: Add consumption heartbeat");
 			Console.WriteLine("6: Unassign license from device (has to be activated again then)");
 			Console.WriteLine("7: Lookup licenses");
 			Console.WriteLine("8: Open session");
 			Console.WriteLine("9: Close session");
 			Console.WriteLine("10: Print https chain of trust info");
-			Console.WriteLine("11: Read offline license info (only available after at least one license heart beat)");
+			Console.WriteLine("11: Read offline license info (only available after at least one license heartbeat)");
 			Console.WriteLine("12: Validate license file");
 			Console.WriteLine("13: Print device infos");
 			Console.WriteLine("14: Print virtualization/cloud environment infos");
@@ -166,7 +161,7 @@ class Program
 	{
 		var activateClientDto = new ActivateClientDto
 		{
-			Product_id = _product_id_cad,
+			Product_id = _product_id,
 			License_key = _license_key,
 			Client_id = Helper.GetUniqueDeviceId(),
 			Client_description = "",
@@ -206,7 +201,7 @@ class Program
 	{
 		var heartbeatDto = new AddHeartbeatDto
 		{
-			Product_id = _product_id_cad,
+			Product_id = _product_id,
 			Client_id = Helper.GetUniqueDeviceId(),
 			Software_version = "22.1",
 			Operating_system = Helper.GetOperatingSystem()
@@ -439,7 +434,7 @@ class Program
 	{
 		var getLicenses = new GetLicensesByLicenseKeyDto
 		{
-			Product_id = _product_id_cad,
+			Product_id = _product_id,
 			License_key = _license_key
 		};
 
