@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Management;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Security.Cryptography.Xml;
 using System.Text;
@@ -88,7 +89,17 @@ hQIDAQAB
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                return UniqueDeviceId = WindowsDeviceInfos.ComputerSystemProductId;
+	            try
+	            {
+		            UniqueDeviceId = WindowsDeviceInfos.ComputerSystemProductId;
+	            }
+				catch (ManagementException managementException)
+	            {
+					// WindowsDeviceInfos.ComputerSystemProductId uses a WMI query to get the machine ID
+                    // If a problem occurs executing the WMI query a device id has to be created in an alternative way
+                    UniqueDeviceId = $"{Guid.NewGuid()}-fallback";
+	            }
+				return UniqueDeviceId;
             }
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
