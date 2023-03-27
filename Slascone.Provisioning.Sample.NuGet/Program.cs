@@ -85,9 +85,10 @@ class Program
 			Console.WriteLine("9: Close session");
 			Console.WriteLine("10: Print https chain of trust info");
 			Console.WriteLine("11: Read offline license info (only available after at least one license heartbeat)");
-			Console.WriteLine("12: Validate license file");
-			Console.WriteLine("13: Print device infos");
-			Console.WriteLine("14: Print virtualization/cloud environment infos");
+			Console.WriteLine("12: Validate offline license file");
+			Console.WriteLine("13: Read offline license and activation file");
+			Console.WriteLine("14: Print device infos");
+			Console.WriteLine("15: Print virtualization/cloud environment infos");
 			Console.WriteLine("x: Exit demo app");
 
 			Console.Write("> ");
@@ -140,17 +141,23 @@ class Program
 					break;
 
 				case "12":
-					IsLicenseFileSignatureValid(@"../../../Assets/OfflineLicenseFile.xml");
+					pr.IsLicenseFileSignatureValid(Path.Combine("..", "..", "..", "Assets", "License-91fad880-90c4-46cb-8d8b-0a12445c6f0e.xml"));
 					break;
 
 				case "13":
+					pr.OfflineLicenseActivationExample(
+						Path.Combine("..", "..", "..", "Assets", "License-91fad880-90c4-46cb-8d8b-0a12445c6f0e.xml"),
+						Path.Combine("..", "..", "..", "Assets", "LicenseFile.xml"));
+					break;
+
+				case "14":
 					if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 						Console.Write(WindowsDeviceInfos.LogDeviceInfos());
 					if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 						Console.Write(LinuxDeviceInfos.LogDeviceInfos());
 					break;
 
-				case "14":
+				case "15":
 					Console.Write(pr.LogVirtualizationInfos());
 					break;
 			}
@@ -614,7 +621,7 @@ class Program
 
 	private void WriteLicenseInfo(LicenseInfoDto licenseInfo)
     {
-	    Console.WriteLine($"License infos (Retrieved {licenseInfo.Created_date_utc.Value}):");
+	    Console.WriteLine($"License infos (Retrieved {licenseInfo.Created_date_utc}):");
 	    Console.WriteLine($"   Company name: {licenseInfo.Customer.Company_name}");
 
 	    // Handle license info
@@ -639,33 +646,59 @@ class Program
 	    _limitationNames = licenseInfo.Limitations.ToDictionary(l => l.Id, l => l.Name);
     }
 
-    private static bool IsLicenseFileSignatureValid(string licenseFile)
+    private bool IsLicenseFileSignatureValid(string licenseFile)
     {
-        //Signature Validation of Offline License XML
-        XmlDocument xmlDoc = new XmlDocument();
-        //Load an XML file into the XmlDocument object.
-        xmlDoc.Load(licenseFile);
-        bool isValid = false;
-        try
-        {
-            isValid = Helper.IsFileSignatureValid(xmlDoc);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex.ToString());
-        }
-        if (isValid)
-        {
-            Console.WriteLine("Successfully validated the file's signature.");
-        }
-        else
-        {
-            Console.WriteLine("Invalid file signature.");
-        }
-        return isValid;
+	    var isValid = false;
+	    try
+	    {
+		    isValid = _slasconeClientV2.IsFileSignatureValid(licenseFile);
+		}
+	    catch (Exception ex)
+	    {
+		    Console.WriteLine(ex.ToString());
+	    }
+
+	    if (isValid)
+	    {
+		    Console.WriteLine("Successfully validated the file's signature.");
+	    }
+	    else
+	    {
+		    Console.WriteLine("Invalid file signature.");
+	    }
+
+	    return isValid;
     }
 
-    private string LogVirtualizationInfos()
+	private void OfflineLicenseActivationExample(string licenseFile, string activationFile)
+    {
+		var licenseInfo = _slasconeClientV2.ReadLicenseFile(licenseFile);
+		var activation = _slasconeClientV2.ReadActivationFile(activationFile);
+
+		if (activation.License_key.Equals(licenseInfo.License_key))
+		{
+			Console.WriteLine("Activation license ID is valid.");
+		}
+		else
+		{
+			Console.WriteLine("Activation license ID is invalid!");
+		}
+
+		// You have to compare the Client_id with the client ID of the device the license was activated for!
+		if (activation.Client_id.Equals("24A43FCC-3674-0B19-A95F-047C160137E5"))
+		{
+			Console.WriteLine("Activation device ID is valid.");
+		}
+		else
+		{
+			Console.WriteLine("Activation device ID is invalid!");
+		}
+
+		WriteLicenseInfo(licenseInfo);
+    }
+
+
+	private string LogVirtualizationInfos()
     {
 	    var sb = new StringBuilder();
 
