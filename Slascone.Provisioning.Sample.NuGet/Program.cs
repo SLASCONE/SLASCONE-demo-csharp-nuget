@@ -614,10 +614,27 @@ class Program
 		    Console.WriteLine($"   License is expired since {expiration} day(s).");
 	    }
 
-	    Console.WriteLine($"   Active features: {string.Join(", ", license.License_features.Where(f => f.Is_active).Select(f => f.Feature_name))}");
+	    Console.WriteLine($"   Active features: {string.Join(", ", license.License_features.Where(f => f.Is_active).Select(LicenseFeatureInfo))}");
 	    Console.WriteLine($"   Limitations: {string.Join(", ", license.License_limitations.Select(l => $"{l.Limitation_name} = {l.Limit}"))}");
 	    _limitationNames = license.License_limitations.ToDictionary(l => l.Limitation_id, l => l.Limitation_name);
     }
+
+	private string LicenseFeatureInfo(LicenseFeatureDto licenseFeature)
+	{
+		var sb = new StringBuilder(licenseFeature.Feature_name);
+
+		var currentException =
+			licenseFeature.Feature_exceptions
+				?.Exceptions
+				.FirstOrDefault(exc => exc.Start_date_utc <= DateTime.Now.Date && DateTime.Now.Date <= exc.End_date_utc);
+
+		if (null != currentException)
+		{
+			sb.Append($" (valid until {currentException.End_date_utc})");
+		}
+
+		return sb.ToString();
+	}
 
 	private void WriteLicenseInfo(LicenseInfoDto licenseInfo)
     {
@@ -641,10 +658,22 @@ class Program
 		    }
 	    }
 
-	    Console.WriteLine($"   Active features: {string.Join(", ", licenseInfo.Features.Where(f => f.Is_active).Select(f => f.Name))}");
+	    Console.WriteLine($"   Active features: {string.Join(", ", licenseInfo.Features.Where(f => f.Is_active).Select(ProvisioningFeatureInfo))}");
 	    Console.WriteLine($"   Limitations: {string.Join(", ", licenseInfo.Limitations.Select(l => $"{l.Name} = {l.Value}"))}");
 	    _limitationNames = licenseInfo.Limitations.ToDictionary(l => l.Id, l => l.Name);
     }
+
+	private string ProvisioningFeatureInfo(ProvisioningFeatureDto provisioningFeature)
+	{
+		var sb = new StringBuilder(provisioningFeature.Name);
+
+		if (null != provisioningFeature.Expiration_date_utc)
+		{
+			sb.Append($" (valid until {provisioningFeature.Expiration_date_utc})");
+		}
+
+		return sb.ToString();
+	}
 
     private bool IsLicenseFileSignatureValid(string licenseFile)
     {
