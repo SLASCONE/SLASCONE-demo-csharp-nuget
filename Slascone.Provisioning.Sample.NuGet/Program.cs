@@ -29,7 +29,7 @@ class Program
 
 #if NET6_0_OR_GREATER
 
-		// Importing a RSA key from a PEM encoded string is available in .NET 6.0 or higher
+		// Importing a RSA key from a PEM encoded string is available in .NET 6.0 or later
 		using (var rsa = RSA.Create())
 		{
 			rsa.ImportFromPem(Helper.SignaturePubKeyPem.ToCharArray());
@@ -38,7 +38,7 @@ class Program
 		}
 #else
 
-		// If you are using .NET Framework 4.8 you have to load the public key from a xml string
+		// If you are not using .NET 6.0 or later you have to load the public key from a xml string
 		_slasconeClientV2.SetSignaturePublicKeyXml(Helper.SignaturePublicKeyXml);
 		_slasconeClientV2.SetSignatureValidationMode(Helper.SignatureValidationMode);
 
