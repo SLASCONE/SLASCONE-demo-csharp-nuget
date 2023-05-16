@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Management;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Security.Cryptography.Xml;
 using System.Text;
@@ -16,7 +17,12 @@ public class Helper
     #region Main values - Fill according to your environment
 
     // CHANGE these values according to your environment at: https://my.slascone.com/info
+    
+    //Use this to connect to the Argus Demo 
     public const string ApiBaseUrl = "https://api.slascone.com";
+
+    //Use this instead to connect to the SaaS environment
+    //public const string ApiBaseUrl = "https://api365.slascone.com";
     public const string ProvisioningKey = "NfEpJ2DFfgczdYqOjvmlgP2O/4VlqmRHXNE9xDXbqZcOwXTbH3TFeBAKKbEzga7D7ashHxFtZOR142LYgKWdNocibDgN75/P58YNvUZafLdaie7eGwI/2gX/XuDPtqDW";
     public static Guid IsvId = Guid.Parse("2af5fe02-6207-4214-946e-b00ac5309f53");
 
@@ -88,7 +94,17 @@ hQIDAQAB
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                return UniqueDeviceId = WindowsDeviceInfos.ComputerSystemProductId;
+	            try
+	            {
+		            UniqueDeviceId = WindowsDeviceInfos.ComputerSystemProductId;
+	            }
+				catch (ManagementException managementException)
+	            {
+					// WindowsDeviceInfos.ComputerSystemProductId uses a WMI query to get the machine ID
+                    // If a problem occurs executing the WMI query a device id has to be created in an alternative way
+                    UniqueDeviceId = $"{Guid.NewGuid()}-fallback";
+	            }
+				return UniqueDeviceId;
             }
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
