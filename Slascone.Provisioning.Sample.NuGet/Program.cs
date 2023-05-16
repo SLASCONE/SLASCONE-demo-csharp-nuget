@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using Slascone.Client.Interfaces;
 
 namespace Slascone.Provisioning.Sample.NuGet;
 
@@ -23,9 +24,13 @@ class Program
 
 	public Program()
 	{
-		_slasconeClientV2 = new SlasconeClientV2(Helper.ApiBaseUrl,
-				Helper.IsvId,
-				Helper.ProvisioningKey);
+		_slasconeClientV2 =
+			SlasconeClientV2Factory.BuildClient(Helper.ApiBaseUrl, Helper.IsvId, Helper.ProvisioningKey);
+
+		// If you are using Azure AD B2C authentication you can set the bearer token for authorization against the SLASCONE RestAPI.
+		// Set the bearer token including the 'Bearer' prefix.
+		//_slasconeClientV2 = SlasconeClientV2Factory.BuildClient(Helper.ApiBaseUrl, Helper.IsvId);
+		//_slasconeClientV2.SetBearer(Helper.Bearer);
 
 #if NET6_0_OR_GREATER
 
@@ -33,8 +38,9 @@ class Program
 		using (var rsa = RSA.Create())
 		{
 			rsa.ImportFromPem(Helper.SignaturePubKeyPem.ToCharArray());
-			_slasconeClientV2.SetSignaturePublicKey(new PublicKey(rsa));
-			_slasconeClientV2.SetSignatureValidationMode(Helper.SignatureValidationMode);
+			_slasconeClientV2
+				.SetSignaturePublicKey(new PublicKey(rsa))
+				.SetSignatureValidationMode(Helper.SignatureValidationMode);
 		}
 #else
 
@@ -171,7 +177,7 @@ class Program
 
 		try
 		{
-			var result = await _slasconeClientV2.ActivateLicenseAsync(activateClientDto);
+			var result = await _slasconeClientV2.Provisioning.ActivateLicenseAsync(activateClientDto);
 			if (result.StatusCode == 200)
 			{
 				Console.WriteLine("Successfull activation.");
@@ -209,7 +215,7 @@ class Program
 
 		try
 		{
-			var result = await _slasconeClientV2.AddHeartbeatAsync(heartbeatDto);
+			var result = await _slasconeClientV2.Provisioning.AddHeartbeatAsync(heartbeatDto);
 			if (result.StatusCode == 200)
 			{
 				Console.WriteLine("Successfully created heartbeat.");
@@ -256,7 +262,7 @@ class Program
 
 		try
 		{
-			var result = await _slasconeClientV2.AddAnalyticalHeartbeatAsync(analyticalHeartbeatDto);
+			var result = await _slasconeClientV2.DataGathering.AddAnalyticalHeartbeatAsync(analyticalHeartbeatDto);
 			if (result.StatusCode == 200)
 			{
 				Console.WriteLine("Successfully created analytical heartbeat.");
@@ -313,7 +319,7 @@ class Program
 
 		try
 		{
-			var result = await _slasconeClientV2.AddUsageHeartbeatAsync(usageHeartbeat);
+			var result = await _slasconeClientV2.DataGathering.AddUsageHeartbeatAsync(usageHeartbeat);
 			if (result.StatusCode == 200)
 			{
 				Console.WriteLine("Successfully created usage heartbeat.");
@@ -355,7 +361,7 @@ class Program
 
 		try
 		{
-			var result = await _slasconeClientV2.AddConsumptionHeartbeatAsync(consumptionHeartbeat);
+			var result = await _slasconeClientV2.DataGathering.AddConsumptionHeartbeatAsync(consumptionHeartbeat);
 
 			if (result.StatusCode == 200)
 			{
@@ -405,7 +411,7 @@ class Program
 
 		try
 		{
-			var result = await _slasconeClientV2.UnassignLicenseAsync(unassignDto);
+			var result = await _slasconeClientV2.Provisioning.UnassignLicenseAsync(unassignDto);
 			if (result.StatusCode == 200)
 			{
 				Console.WriteLine("Successfully unaasigned device from license.");
@@ -441,7 +447,7 @@ class Program
 		try
 		{
 
-			var result = await _slasconeClientV2.GetLicensesByLicenseKeyAsync(getLicenses);
+			var result = await _slasconeClientV2.Provisioning.GetLicensesByLicenseKeyAsync(getLicenses);
 
 			if (200 == result.StatusCode)
 			{
@@ -478,7 +484,7 @@ class Program
 
         try
         {
-            var result = await _slasconeClientV2.OpenSessionAsync(sessionDto);
+            var result = await _slasconeClientV2.Provisioning.OpenSessionAsync(sessionDto);
             if (result.StatusCode == 200)
             {
 				_sessionIds.Push(sessionId);
@@ -516,7 +522,7 @@ class Program
 
         try
         {
-            var result = await _slasconeClientV2.CloseSessionAsync(sessionDto);
+            var result = await _slasconeClientV2.Provisioning.CloseSessionAsync(sessionDto);
             if (result.StatusCode == 200)
             {
                 Console.WriteLine($"Successfully closed session {sessionId}.");
