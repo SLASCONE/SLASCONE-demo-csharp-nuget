@@ -27,15 +27,20 @@ class Program
 		_slasconeClientV2 =
 			SlasconeClientV2Factory.BuildClient(Helper.ApiBaseUrl, Helper.IsvId, Helper.ProvisioningKey);
 
-		// If you are using Azure AD B2C authentication you can set the bearer token for authorization against the SLASCONE RestAPI.
-		// Set the bearer token including the 'Bearer' prefix.
-		//_slasconeClientV2 = SlasconeClientV2Factory.BuildClient(Helper.ApiBaseUrl, Helper.IsvId);
-		//_slasconeClientV2.SetBearer(Helper.Bearer);
+        // If you are using Azure AD B2C authentication you can set the bearer token for authorization against the SLASCONE RestAPI.
+        // Set the bearer token including the 'Bearer' prefix.
+        //_slasconeClientV2 = SlasconeClientV2Factory.BuildClient(Helper.ApiBaseUrl, Helper.IsvId);
+        //_slasconeClientV2.SetBearer(Helper.Bearer);
+
+        // If you want to use the AdminKey instead of the ProvisioningKey (e.g., for internal or test purposes).
+        //_slasconeClientV2 = SlasconeClientV2Factory.BuildClient(Helper.ApiBaseUrl, Helper.IsvId);
+        //_slasconeClientV2.SetBearer(Helper.AdminKey);
+
 
 #if NET6_0_OR_GREATER
 
-		// Importing a RSA key from a PEM encoded string is available in .NET 6.0 or later
-		using (var rsa = RSA.Create())
+        // Importing a RSA key from a PEM encoded string is available in .NET 6.0 or later
+        using (var rsa = RSA.Create())
 		{
 			rsa.ImportFromPem(Helper.SignaturePubKeyPem.ToCharArray());
 			_slasconeClientV2
