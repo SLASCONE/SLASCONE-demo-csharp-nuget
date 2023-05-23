@@ -111,8 +111,10 @@ hQIDAQAB
             }
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
-                var deviceId = string.Concat(LinuxDeviceInfos.MachineId, LinuxDeviceInfos.RootDeviceSerial);
+			{
+				var deviceId = LinuxDeviceInfos.DockerEnvExists
+								   ? LinuxDeviceInfos.Hostname
+								   : string.Concat(LinuxDeviceInfos.MachineId, LinuxDeviceInfos.RootDeviceSerial);
 
                 return UniqueDeviceId = BitConverter.ToString(MD5.HashData(UTF8Encoding.UTF8.GetBytes(deviceId)));
             }
