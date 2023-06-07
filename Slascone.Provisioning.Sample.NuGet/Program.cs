@@ -15,8 +15,8 @@ class Program
 	private readonly ISlasconeClientV2 _slasconeClientV2;
 
 	// CHANGE these values according to your environment 
-	private readonly string _license_key = "27180460-29df-4a5a-a0a1-78c85ab6cee0";    // Find your own license key at : https://my.slascone.com/licenses                                                                                      
-    private readonly Guid _product_id = Guid.Parse("b18657cc-1f7c-43fa-e3a4-08da6fa41ad3");// Find your own product id key at : https://my.slascone.com/products
+	private readonly string _license_key = "27180460-29df-4a5a-a0a1-78c85ab6cee0";    // Find your own license key at : https://my.slascone.com/licenses
+	private readonly Guid _product_id = Guid.Parse("b18657cc-1f7c-43fa-e3a4-08da6fa41ad3");// Find your own product id key at : https://my.slascone.com/products
 
     private Guid? _token_id = Guid.Empty;
 	private Stack<Guid> _sessionIds = new Stack<Guid>();
@@ -92,14 +92,15 @@ class Program
 			Console.WriteLine("5: Add consumption heartbeat");
 			Console.WriteLine("6: Unassign license from device (has to be activated again then)");
 			Console.WriteLine("7: Lookup licenses");
-			Console.WriteLine("8: Open session");
-			Console.WriteLine("9: Close session");
-			Console.WriteLine("10: Print https chain of trust info");
-			Console.WriteLine("11: Read offline license info (only available after at least one license heartbeat)");
-			Console.WriteLine("12: Validate offline license file");
-			Console.WriteLine("13: Read offline license and activation file");
-			Console.WriteLine("14: Print device infos");
-			Console.WriteLine("15: Print virtualization/cloud environment infos");
+			Console.WriteLine("8: Find open session (offline)");
+			Console.WriteLine("9: Open session");
+			Console.WriteLine("10: Close session");
+			Console.WriteLine("11: Print https chain of trust info");
+			Console.WriteLine("12: Read offline license info (only available after at least one license heartbeat)");
+			Console.WriteLine("13: Validate offline license file");
+			Console.WriteLine("14: Read offline license and activation file");
+			Console.WriteLine("15: Print device infos");
+			Console.WriteLine("16: Print virtualization/cloud environment infos");
 			Console.WriteLine("x: Exit demo app");
 
 			Console.Write("> ");
@@ -134,41 +135,45 @@ class Program
 				case "7":
 					await pr.LookupLicensesExample();
 					break;
-
+					
 				case "8":
-					await pr.OpenSessionExample();
+					pr.FindOpenSessionOffline();
 					break;
 
 				case "9":
-					await pr.CloseSessionExample();
+					await pr.OpenSessionExample();
 					break;
 
 				case "10":
-					pr.ChainOfTrustExample();
+					await pr.CloseSessionExample();
 					break;
 
 				case "11":
-					pr.OfflineLicenseInfoExample();
+					pr.ChainOfTrustExample();
 					break;
 
 				case "12":
-					pr.IsLicenseFileSignatureValid(Path.Combine("..", "..", "..", "Assets", "License-91fad880-90c4-46cb-8d8b-0a12445c6f0e.xml"));
+					pr.OfflineLicenseInfoExample();
 					break;
 
 				case "13":
+					pr.IsLicenseFileSignatureValid(Path.Combine("..", "..", "..", "Assets", "License-91fad880-90c4-46cb-8d8b-0a12445c6f0e.xml"));
+					break;
+
+				case "14":
 					pr.OfflineLicenseActivationExample(
 						Path.Combine("..", "..", "..", "Assets", "License-91fad880-90c4-46cb-8d8b-0a12445c6f0e.xml"),
 						Path.Combine("..", "..", "..", "Assets", "LicenseFile.xml"));
 					break;
 
-				case "14":
+				case "15":
 					if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 						Console.Write(WindowsDeviceInfos.LogDeviceInfos());
 					if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 						Console.Write(LinuxDeviceInfos.LogDeviceInfos());
 					break;
 
-				case "15":
+				case "16":
 					Console.Write(pr.LogVirtualizationInfos());
 					break;
 			}
@@ -483,6 +488,23 @@ class Program
 		}
 	}
 
+	private void FindOpenSessionOffline()
+	{
+		var validSessionFound = _slasconeClientV2.Session.TryGetSessionStatus(Guid.Parse(_license_key), out var sessionId, out var sessionStatus);
+
+		if (!validSessionFound)
+		{
+			Console.WriteLine("No valid session found.");
+
+			if (null != sessionStatus) 
+				Console.WriteLine($"Session expired since {sessionStatus.Session_valid_until}");
+
+			return;
+		}
+
+		Console.WriteLine($"Found valid session with ID '{sessionId}'; session is valid until {sessionStatus.Session_valid_until}.");
+	}
+
 	private async Task OpenSessionExample()
 	{
 		var sessionId = Guid.NewGuid();
@@ -493,7 +515,7 @@ class Program
 			License_id = Guid.Parse(_license_key),
 			Session_id = sessionId
         };
-
+		
         try
         {
             var result = await _slasconeClientV2.Provisioning.OpenSessionAsync(sessionDto);
