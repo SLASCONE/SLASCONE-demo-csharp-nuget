@@ -75,35 +75,39 @@ class Program
 	{
 		var pr = new Program();
 
-		Console.WriteLine("Slascone client app example");
+		Console.WriteLine("SLASCONE client app example");
 		Console.WriteLine("===========================");
 		Console.WriteLine();
-		Console.WriteLine($"Unique Client-Id for this device: {Helper.GetUniqueDeviceId()}");
+		Console.WriteLine($"Unique client_id for this device: {Helper.GetUniqueDeviceId()}");
 		Console.WriteLine($"Operating system: {Helper.GetOperatingSystem()}");
 
 		string input;
 		do
 		{
-			Console.WriteLine();
-			Console.WriteLine("1: Activate license (can be done only once per device)");
-			Console.WriteLine("2: Add license heartbeat");
-			Console.WriteLine("3: Add analytical heartbeat");
-			Console.WriteLine("4: Add usage heart beat");
-			Console.WriteLine("5: Add consumption heartbeat");
-			Console.WriteLine("6: Unassign license from device (has to be activated again then)");
-			Console.WriteLine("7: Lookup licenses");
-			Console.WriteLine("8: Find open session (offline)");
-			Console.WriteLine("9: Open session");
-			Console.WriteLine("10: Close session");
-			Console.WriteLine("11: Print https chain of trust info");
-			Console.WriteLine("12: Read offline license info (only available after at least one license heartbeat)");
-			Console.WriteLine("13: Validate offline license file");
-			Console.WriteLine("14: Read offline license and activation file");
-			Console.WriteLine("15: Print device infos");
-			Console.WriteLine("16: Print virtualization/cloud environment infos");
-			Console.WriteLine("x: Exit demo app");
+            Console.WriteLine("-- MAIN");
+            Console.WriteLine("    1: Activate license (can be done only once per device)");
+            Console.WriteLine("    2: Add license heartbeat (license check)");
+            Console.WriteLine("    3: Temporary disconnection: Read local license file (only available after at least one license heartbeat)");
+            Console.WriteLine("    4: Unassign license from device (has to be activated again then)");
+            Console.WriteLine("-- ANALYTICS");
+            Console.WriteLine("    5: Add analytical heartbeat");
+            Console.WriteLine("    6: Add usage heartbeat");
+            Console.WriteLine("    7: Add consumption heartbeat");
+            Console.WriteLine("-- FLOATING");
+            Console.WriteLine("    8: Open session");
+            Console.WriteLine("    9: Find open session (temporary disconnection)");
+            Console.WriteLine("    10: Close session");
+            Console.WriteLine("-- OFFLINE ACTIVATION");
+            Console.WriteLine("    11: Validate license file (signature check)");
+            Console.WriteLine("    12: Validate license file and activation file");
+            Console.WriteLine("-- MISC");
+            Console.WriteLine("    13: Print client info");
+            Console.WriteLine("    14: Print virtualization/cloud environment info");
+            Console.WriteLine("    15: Print https chain of trust info");
+            Console.WriteLine("    16: Lookup licenses");
+            Console.WriteLine("x: Exit demo app");
 
-			Console.Write("> ");
+            Console.Write("> ");
 			input = Console.ReadLine();
 
 			switch (input)
@@ -116,32 +120,32 @@ class Program
 					await pr.HeartbeatExample();
 					break;
 
-				case "3":
+                case "3":
+                    pr.OfflineLicenseInfoExample();
+                    break;
+
+                case "4":
+                    await pr.UnassignExample();
+                    break;
+
+                case "5":
 					await pr.AnalyticalHeartbeatExample();
 					break;
 
-				case "4":
+				case "6":
 					await pr.UsageHeartbeatExample();
 					break;
 
-				case "5":
+				case "7":
 					await pr.ConsumptionHeartbeatExample();
 					break;
 
-				case "6":
-					await pr.UnassignExample();
-					break;
+                case "8":
+                    await pr.OpenSessionExample();
+                    break;
 
-				case "7":
-					await pr.LookupLicensesExample();
-					break;
-					
-				case "8":
+                case "9":
 					pr.FindOpenSessionOffline();
-					break;
-
-				case "9":
-					await pr.OpenSessionExample();
 					break;
 
 				case "10":
@@ -149,34 +153,34 @@ class Program
 					break;
 
 				case "11":
-					pr.ChainOfTrustExample();
-					break;
-
-				case "12":
-					pr.OfflineLicenseInfoExample();
-					break;
-
-				case "13":
 					pr.IsLicenseFileSignatureValid(Path.Combine("..", "..", "..", "Assets", "License-91fad880-90c4-46cb-8d8b-0a12445c6f0e.xml"));
 					break;
 
-				case "14":
+				case "12":
 					pr.OfflineLicenseActivationExample(
 						Path.Combine("..", "..", "..", "Assets", "License-91fad880-90c4-46cb-8d8b-0a12445c6f0e.xml"),
-						Path.Combine("..", "..", "..", "Assets", "LicenseFile.xml"));
+						Path.Combine("..", "..", "..", "Assets", "ActivationFile.xml"));
 					break;
 
-				case "15":
+				case "13":
 					if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 						Console.Write(WindowsDeviceInfos.LogDeviceInfos());
 					if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 						Console.Write(LinuxDeviceInfos.LogDeviceInfos());
 					break;
 
-				case "16":
+				case "14":
 					Console.Write(pr.LogVirtualizationInfos());
 					break;
-			}
+
+                case "15":
+                    pr.ChainOfTrustExample();
+                    break;
+
+                case "16":
+                    await pr.LookupLicensesExample();
+                    break;
+            }
 		} while (!"x".Equals(input, StringComparison.InvariantCultureIgnoreCase));
 	}
 
@@ -733,30 +737,46 @@ class Program
     }
 
 	private void OfflineLicenseActivationExample(string licenseFile, string activationFile)
-    {
+	{
 		var licenseInfo = _slasconeClientV2.ReadLicenseFile(licenseFile);
 		var activation = _slasconeClientV2.ReadActivationFile(activationFile);
 
+        Console.Write("Validating the signature of the activation file: ");
+        var isValid = IsLicenseFileSignatureValid(activationFile);
+        bool canActivate = true;
+
 		if (activation.License_key.Equals(licenseInfo.License_key))
 		{
-			Console.WriteLine("Activation license ID is valid.");
+			Console.WriteLine("Valid/Matching license_key");
 		}
 		else
 		{
-			Console.WriteLine("Activation license ID is invalid!");
+			Console.WriteLine("Invalid/Not matching license_key");
+			canActivate = false;
 		}
 
-		// You have to compare the Client_id with the client ID of the device the license was activated for!
+		// You have to compare the client_id with the client_id of the activation file!
 		if (activation.Client_id.Equals("24A43FCC-3674-0B19-A95F-047C160137E5"))
 		{
-			Console.WriteLine("Activation device ID is valid.");
+			Console.WriteLine("Activation client_id is valid");
 		}
 		else
 		{
-			Console.WriteLine("Activation device ID is invalid!");
+			Console.WriteLine("Activation client_id is invalid!");
+			canActivate = false;
 		}
 
-		WriteLicenseInfo(licenseInfo);
+		if (!canActivate)
+		{
+            Console.WriteLine("The activation file does not match the license file");
+        }
+		else 
+		{
+            Console.WriteLine("Successfull validation");
+            WriteLicenseInfo(licenseInfo); 
+		}
+		
+	
     }
 
 
