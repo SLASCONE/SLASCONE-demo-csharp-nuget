@@ -64,64 +64,66 @@ hQIDAQAB
     /// Get a unique device id based on the system
     /// </summary>
     /// <returns>UUID via string</returns>
-    public static string GetUniqueDeviceId()
+    public static string GetUniqueDeviceId(bool detectCloudAndVirtualization = false)
     {
         if (!string.IsNullOrEmpty(UniqueDeviceId))
             return UniqueDeviceId;
 
-        var awsEc2Infos = new AwsEc2Infos() { TimeoutSeconds = 2 };
-        var detectAws = new Task<bool>(() => awsEc2Infos.DetectAwsEcs().Result);
-        detectAws.Start();
-        var azureVmInfos = new AzureVmInfos() { TimeoutSeconds = 2 };
-        var detectAzure = new Task<bool>(() => azureVmInfos.DetectAzureVm().Result);
-        detectAzure.Start();
-        var virtualizationInfos = new VirtualizationInfos();
-        var detectVirtualization = new Task<bool>(() => virtualizationInfos.DetectVirtualization().Result);
-        detectVirtualization.Start();
+		if (detectCloudAndVirtualization)
+		{
+			var awsEc2Infos = new AwsEc2Infos() { TimeoutSeconds = 2 };
+			var detectAws = new Task<bool>(() => awsEc2Infos.DetectAwsEcs().Result);
+			detectAws.Start();
+			var azureVmInfos = new AzureVmInfos() { TimeoutSeconds = 2 };
+			var detectAzure = new Task<bool>(() => azureVmInfos.DetectAzureVm().Result);
+			detectAzure.Start();
+			var virtualizationInfos = new VirtualizationInfos();
+			var detectVirtualization = new Task<bool>(() => virtualizationInfos.DetectVirtualization().Result);
+			detectVirtualization.Start();
 
-        Task.WaitAll(detectAws, detectAzure, detectVirtualization);
+			Task.WaitAll(detectAws, detectAzure, detectVirtualization);
 
-        var awsDetected = detectAws.Result;
-        var azureDetected = detectAzure.Result;
-        var virtualizationDetected = detectVirtualization.Result;
+			var awsDetected = detectAws.Result;
+			var azureDetected = detectAzure.Result;
+			var virtualizationDetected = detectVirtualization.Result;
 
-        if (awsDetected)
-        {
-            return UniqueDeviceId = awsEc2Infos.InstanceId;
-        }
-        else if (azureDetected)
-        {
-            return UniqueDeviceId = azureVmInfos.VmId;
-        }
-        else
-        {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-	            try
-	            {
-		            UniqueDeviceId = WindowsDeviceInfos.ComputerSystemProductId;
-	            }
-				catch (ManagementException managementException)
-	            {
-					// WindowsDeviceInfos.ComputerSystemProductId uses a WMI query to get the machine ID
-                    // If a problem occurs executing the WMI query a device id has to be created in an alternative way
-                    UniqueDeviceId = $"{Guid.NewGuid()}-fallback";
-	            }
-				return UniqueDeviceId;
-            }
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+			if (awsDetected)
 			{
-				var deviceId = LinuxDeviceInfos.DockerEnvExists
-								   ? LinuxDeviceInfos.Hostname
-								   : string.Concat(LinuxDeviceInfos.MachineId, LinuxDeviceInfos.RootDeviceSerial);
+				return UniqueDeviceId = awsEc2Infos.InstanceId;
+			}
+			if (azureDetected)
+			{
+				return UniqueDeviceId = azureVmInfos.VmId;
+			}
+		}
 
-                return UniqueDeviceId = BitConverter.ToString(MD5.HashData(UTF8Encoding.UTF8.GetBytes(deviceId)));
-            }
+		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+		{
+			try
+			{
+				UniqueDeviceId = WindowsDeviceInfos.ComputerSystemProductId;
+			}
+			catch (ManagementException managementException)
+			{
+				// WindowsDeviceInfos.ComputerSystemProductId uses a WMI query to get the machine ID
+				// If a problem occurs executing the WMI query a device id has to be created in an alternative way
+				UniqueDeviceId = $"{Guid.NewGuid()}-fallback";
+			}
 
-            throw new NotSupportedException("GetUniqueDeviceId() is supported only on Windows and Linux");
-        }
-    }
+			return UniqueDeviceId;
+		}
+
+		if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+		{
+			var deviceId = LinuxDeviceInfos.DockerEnvExists
+							   ? LinuxDeviceInfos.Hostname
+							   : string.Concat(LinuxDeviceInfos.MachineId, LinuxDeviceInfos.RootDeviceSerial);
+
+			return UniqueDeviceId = BitConverter.ToString(MD5.HashData(UTF8Encoding.UTF8.GetBytes(deviceId)));
+		}
+
+		throw new NotSupportedException("GetUniqueDeviceId() is supported only on Windows and Linux");
+	}
 
     public static string GetOperatingSystem()
     {

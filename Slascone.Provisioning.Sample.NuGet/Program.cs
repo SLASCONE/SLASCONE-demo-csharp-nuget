@@ -78,7 +78,10 @@ class Program
 		Console.WriteLine("SLASCONE client app example");
 		Console.WriteLine("===========================");
 		Console.WriteLine();
-		Console.WriteLine($"Unique client_id for this device: {Helper.GetUniqueDeviceId()}");
+		Console.WriteLine("Trying to detect Azure or AWS cloud environment or general virtualization ...");
+		// You can speed up the application start by skipping the cloud and virtualization detection.
+		// Just set the parameter of the GetUniqueDeviceId() function to 'false'
+		Console.WriteLine($"Unique client_id for this device: {Helper.GetUniqueDeviceId(true)}");
 		Console.WriteLine($"Operating system: {Helper.GetOperatingSystem()}");
 
 		string input;
