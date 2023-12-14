@@ -3,14 +3,17 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
+    <Version>22.1</Version>
+    <AssemblyVersion>22.1</AssemblyVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>disable</Nullable>
     <IsPublishable>True</IsPublishable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Slascone.Client" Version="2.1.92" />
+    <PackageReference Include="Slascone.Client" Version="2.1.257" />
     <PackageReference Include="System.Management" Version="7.0.1" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="7.0.3" />
     <PackageReference Include="System.Security.Cryptography.Xml" Version="7.0.1" />
   </ItemGroup>
 
