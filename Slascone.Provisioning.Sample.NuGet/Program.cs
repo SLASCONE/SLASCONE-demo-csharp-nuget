@@ -55,7 +55,9 @@ class Program
 
 #endif
 
-		_slasconeClientV2.SetCheckHttpsCertificate();
+		_slasconeClientV2
+			.SetCheckHttpsCertificate()
+			.SetLastModifiedByHeader("Slascone.Provisioning.Sample.NuGet");
 
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 		{
