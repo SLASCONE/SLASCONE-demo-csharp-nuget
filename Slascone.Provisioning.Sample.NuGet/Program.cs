@@ -741,51 +741,71 @@ class Program
 	    return isValid;
     }
 
-	private void OfflineLicenseActivationExample(string licenseFile, string activationFile)
-	{
-		var licenseInfo = _slasconeClientV2.ReadLicenseFile(licenseFile);
-		var activation = _slasconeClientV2.ReadActivationFile(activationFile);
+    private void OfflineLicenseActivationExample(string licenseFile, string activationFile)
+    {
+        var licenseInfo = _slasconeClientV2.ReadLicenseFile(licenseFile);
 
-        Console.Write("Validating the signature of the activation file: ");
-        var isValid = IsLicenseFileSignatureValid(activationFile);
-        bool canActivate = true;
+        var offlineLicensingClientId = "24A43FCC-3674-0B19-A95F-047C160137E5";
 
-		if (activation.License_key.Equals(licenseInfo.License_key))
-		{
-			Console.WriteLine("Valid/Matching license_key");
-		}
-		else
-		{
-			Console.WriteLine("Invalid/Not matching license_key");
-			canActivate = false;
-		}
+        bool isActivated = false;
 
-		// You have to compare the client_id with the client_id of the activation file!
-		if (activation.Client_id.Equals("24A43FCC-3674-0B19-A95F-047C160137E5"))
-		{
-			Console.WriteLine("Activation client_id is valid");
-		}
-		else
-		{
-			Console.WriteLine("Activation client_id is invalid!");
-			canActivate = false;
-		}
+        if (null != licenseInfo.Client_id)
+        {
+            // If the license edition has the 'activation upon creation' mode 'client id' the client id is included in the license file.
 
-		if (!canActivate)
-		{
-            Console.WriteLine("The activation file does not match the license file");
+            // Check inline activation
+            if (licenseInfo.Client_id.Equals(offlineLicensingClientId, StringComparison.InvariantCultureIgnoreCase))
+            {
+                Console.WriteLine("Activation client_id in license file is valid");
+                isActivated = true;
+            }
+            else
+            {
+                Console.WriteLine("Activation client_id in license file is invalid!");
+            }
         }
-		else 
-		{
-            Console.WriteLine("Successfull validation");
-            WriteLicenseInfo(licenseInfo); 
-		}
-		
-	
+        else
+        {
+            var activation = _slasconeClientV2.ReadActivationFile(activationFile);
+
+            Console.Write("Validating the signature of the activation file: ");
+            var isValid = IsLicenseFileSignatureValid(activationFile);
+
+            if (activation.License_key.Equals(licenseInfo.License_key))
+            {
+                Console.WriteLine("Valid/Matching license_key");
+                isActivated = true;
+            }
+            else
+            {
+                Console.WriteLine("Invalid/Not matching license_key");
+            }
+
+            // You have to compare the client_id with the client_id of the activation file!
+            if (activation.Client_id.Equals(offlineLicensingClientId, StringComparison.InvariantCultureIgnoreCase))
+            {
+                Console.WriteLine("Activation client_id is valid");
+                isActivated = true;
+            }
+            else
+            {
+                Console.WriteLine("Activation client_id is invalid!");
+            }
+
+            if (!isActivated)
+            {
+                Console.WriteLine("The activation file does not match the license file");
+            }
+        }
+
+        if (isActivated)
+        {
+            Console.WriteLine("Successful validation");
+            WriteLicenseInfo(licenseInfo);
+        }
     }
 
-
-	private string LogVirtualizationInfos()
+    private string LogVirtualizationInfos()
     {
 	    var sb = new StringBuilder();
 
