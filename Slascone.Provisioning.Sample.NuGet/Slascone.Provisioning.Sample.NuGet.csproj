@@ -11,10 +11,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Slascone.Client" Version="2.1.573" />
-    <PackageReference Include="System.Management" Version="9.0.0" />
-    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="9.0.0" />
-    <PackageReference Include="System.Security.Cryptography.Xml" Version="9.0.0" />
+    <PackageReference Include="Slascone.Client" Version="2.1.686" />
+    <PackageReference Include="System.Management" Version="9.0.1" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="9.0.1" />
+    <PackageReference Include="System.Security.Cryptography.Xml" Version="9.0.1" />
   </ItemGroup>
 
 </Project>
