@@ -218,6 +218,13 @@ class Program
 				}
 				*/
 			}
+			else if (result.StatusCode == 503 || result.StatusCode == 504)
+			{
+				// Service is temporarily unavailable
+				// Consider implementing a retry logic here to handle temporary service unavailability.
+				// See: https://support.slascone.com/hc/en-us/articles/360016160398-ERROR-CODES
+				Console.WriteLine("Service is not available. Please try again later.");
+			}
 			else
 			{
 				Console.WriteLine(result.Message);
@@ -256,6 +263,13 @@ class Program
 				{ 
 				}
 				*/
+			}
+			else if (result.StatusCode == 503 || result.StatusCode == 504)
+			{
+				// Service is temporarily unavailable
+				// Consider implementing a retry logic here to handle temporary service unavailability.
+				// See: https://support.slascone.com/hc/en-us/articles/360016160398-ERROR-CODES
+				Console.WriteLine("Service is not available. Please try again later.");
 			}
 			else
 			{
@@ -301,6 +315,13 @@ class Program
 				{ 
 				}
 				*/
+			}
+			else if (result.StatusCode == 503 || result.StatusCode == 504)
+			{
+				// Service is temporarily unavailable
+				// Consider implementing a retry logic here to handle temporary service unavailability.
+				// See: https://support.slascone.com/hc/en-us/articles/360016160398-ERROR-CODES
+				Console.WriteLine("Service is not available. Please try again later.");
 			}
 			else
 			{
@@ -359,6 +380,13 @@ class Program
 				}
 				*/
 			}
+			else if (result.StatusCode == 503 || result.StatusCode == 504)
+			{
+				// Service is temporarily unavailable
+				// Consider implementing a retry logic here to handle temporary service unavailability.
+				// See: https://support.slascone.com/hc/en-us/articles/360016160398-ERROR-CODES
+				Console.WriteLine("Service is not available. Please try again later.");
+			}
 			else
 			{
 				Console.WriteLine(result.Message);
@@ -411,6 +439,13 @@ class Program
 				}
 				*/
 			}
+			else if (result.StatusCode == 503 || result.StatusCode == 504)
+			{
+				// Service is temporarily unavailable
+				// Consider implementing a retry logic here to handle temporary service unavailability.
+				// See: https://support.slascone.com/hc/en-us/articles/360016160398-ERROR-CODES
+				Console.WriteLine("Service is not available. Please try again later.");
+			}
 			else
 			{
 				Console.WriteLine(result.Message);
@@ -451,6 +486,13 @@ class Program
 				}
 				*/
 			}
+			else if (result.StatusCode == 503 || result.StatusCode == 504)
+			{
+				// Service is temporarily unavailable
+				// Consider implementing a retry logic here to handle temporary service unavailability.
+				// See: https://support.slascone.com/hc/en-us/articles/360016160398-ERROR-CODES
+				Console.WriteLine("Service is not available. Please try again later.");
+			}
 			else
 			{
 				Console.WriteLine(result.Message);
@@ -485,6 +527,13 @@ class Program
 			else if (409 == result.StatusCode)
 			{
 				ReportError("LookupLicenses", result.Error);
+			}
+			else if (result.StatusCode == 503 || result.StatusCode == 504)
+			{
+				// Service is temporarily unavailable
+				// Consider implementing a retry logic here to handle temporary service unavailability.
+				// See: https://support.slascone.com/hc/en-us/articles/360016160398-ERROR-CODES
+				Console.WriteLine("Service is not available. Please try again later.");
 			}
 			else
 			{
@@ -538,8 +587,15 @@ class Program
             {
 	            ReportError("OpenSession", result.Error);
             }
-			else
+            else if (result.StatusCode == 503 || result.StatusCode == 504)
             {
+	            // Service is temporarily unavailable
+	            // Consider implementing a retry logic here to handle temporary service unavailability.
+	            // See: https://support.slascone.com/hc/en-us/articles/360016160398-ERROR-CODES
+	            Console.WriteLine("Service is not available. Please try again later.");
+            }
+			else
+			{
                 Console.WriteLine(result.Message);
             }
         }
@@ -574,8 +630,15 @@ class Program
             {
 	            ReportError("CloseSession", result.Error);
             }
-			else
+            else if (result.StatusCode == 503 || result.StatusCode == 504)
             {
+	            // Service is temporarily unavailable
+	            // Consider implementing a retry logic here to handle temporary service unavailability.
+	            // See: https://support.slascone.com/hc/en-us/articles/360016160398-ERROR-CODES
+	            Console.WriteLine("Service is not available. Please try again later.");
+            }
+			else
+			{
                 Console.WriteLine(result.Message);
             }
         }
