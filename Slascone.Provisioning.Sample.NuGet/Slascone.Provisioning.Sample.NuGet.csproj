@@ -11,7 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Slascone.Client" Version="2.1.703" />
+    <PackageReference Include="Slascone.Client" Version="2.1.838" />
     <PackageReference Include="System.Management" Version="9.0.2" />
     <PackageReference Include="System.Security.Cryptography.Pkcs" Version="9.0.2" />
     <PackageReference Include="System.Security.Cryptography.Xml" Version="9.0.2" />

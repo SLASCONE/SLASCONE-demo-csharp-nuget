@@ -366,7 +366,7 @@ class Program
 
 		try
 		{
-			var result = await _slasconeClientV2.DataGathering.AddUsageHeartbeatAsync(usageHeartbeat);
+			var result = await _slasconeClientV2.DataGathering.AddUsageHeartbeatAsync(usageHeartbeat, true);
 			if (result.StatusCode == 200)
 			{
 				Console.WriteLine("Successfully created usage heartbeat.");
