@@ -18,6 +18,7 @@ public class Settings
 
     public static Guid IsvId = Guid.Parse("2af5fe02-6207-4214-946e-b00ac5309f53");
     public static Guid ProductId = Guid.Parse("b18657cc-1f7c-43fa-e3a4-08da6fa41ad3");  // Find your own product id key at : https://my.slascone.com/products
+    public static string SoftwareVersion = "25.2.0";
 
     #endregion
 

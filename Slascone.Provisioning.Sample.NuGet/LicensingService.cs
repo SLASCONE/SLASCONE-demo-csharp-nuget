@@ -94,7 +94,7 @@ namespace Slascone.Provisioning.Sample.NuGet
                 Client_id = DeviceInfoService.GetUniqueDeviceId(),
                 Client_description = "",
                 Client_name = "From GitHub Nuget Sample",
-                Software_version = "25.2.0"
+                Software_version = Settings.SoftwareVersion
             };
 
             try
@@ -129,7 +129,7 @@ namespace Slascone.Provisioning.Sample.NuGet
             {
                 Product_id = Settings.ProductId,
                 Client_id = DeviceInfoService.GetUniqueDeviceId(),
-                Software_version = "25.2.0",
+                Software_version = Settings.SoftwareVersion,
                 Operating_system = DeviceInfoService.GetOperatingSystem()
             };
 
