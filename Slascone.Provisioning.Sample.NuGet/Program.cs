@@ -4,6 +4,7 @@ using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
 using Slascone.Client.Interfaces;
+using System.Diagnostics; // Added for memory/time diagnostics
 
 namespace Slascone.Provisioning.Sample.NuGet;
 
@@ -80,6 +81,7 @@ class Program
             Console.WriteLine("    14: Print virtualization/cloud environment info");
             Console.WriteLine("    15: Print https chain of trust info");
             Console.WriteLine("    16: Lookup licenses");
+            Console.WriteLine("    17: Memory stress test (sequential + parallel)");
             Console.WriteLine("x: Exit demo app");
 
             Console.Write("> ");
@@ -154,6 +156,10 @@ class Program
 
                 case "16":
                     await _licensingService.LookupLicensesAsync(_license_key);
+                    break;
+
+                case "17":
+                    LoadTest();
                     break;
             }
 		} while (!"x".Equals(input, StringComparison.InvariantCultureIgnoreCase));
@@ -337,8 +343,8 @@ class Program
 	    var isValid = false;
 	    try
 	    {
-		    isValid = SlasconeClientV2.IsFileSignatureValid(licenseFile);
-		}
+            isValid = SlasconeClientV2.IsFileSignatureValid(licenseFile);
+        }
 	    catch (Exception ex)
 	    {
 		    Console.WriteLine(ex.ToString());
@@ -426,6 +432,116 @@ class Program
         }
     }
 
+    /// <summary>
+    /// Memory stress test for licensing operations (sequential + parallel).
+    /// Creates fresh LicensingService instances to mimic stateless request processing.
+    /// Monitors allocations, working set and GC collections.
+    /// </summary>
+    private void LoadTest()
+    {
+        var licenseFilePath = Path.Combine("..", "..", "..", "Assets", "License-91fad880-90c4-46cb-8d8b-0a12445c6f0e.xml");
+        const int iterations = 10000; // sequential iterations
+
+        Console.WriteLine("=== Sequential stress test ===");
+        Console.WriteLine($"License file: {licenseFilePath}");
+        Console.WriteLine($"Iterations: {iterations}");
+
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+
+        var proc = Process.GetCurrentProcess();
+        long initialAllocated = GC.GetTotalAllocatedBytes(true);
+        long initialWorkingSet = proc.WorkingSet64;
+        long initialPrivate = proc.PrivateMemorySize64;
+        int gen0Before = GC.CollectionCount(0);
+        int gen1Before = GC.CollectionCount(1);
+        int gen2Before = GC.CollectionCount(2);
+
+        var sw = Stopwatch.StartNew();
+        long peakWorkingSet = initialWorkingSet;
+
+        for (int i = 1; i <= iterations; i++)
+        {
+            var licensingService = new LicensingService();
+            licensingService.SlasconeClientV2.ReadLicenseFile(licenseFilePath);
+            licensingService.SlasconeClientV2.IsFileSignatureValid(licenseFilePath);
+
+            // Periodic reporting
+            if (0 == i % 1000)
+            {
+                long allocated = GC.GetTotalAllocatedBytes(false);
+                peakWorkingSet = Math.Max(peakWorkingSet, proc.WorkingSet64);
+                Console.WriteLine($"Iter {i,5}: AllocatedΔ={FormatBytes(allocated - initialAllocated),12} WS={FormatBytes(proc.WorkingSet64),12} Private={FormatBytes(proc.PrivateMemorySize64),12}");
+                // Optional GC to see if memory is released
+                //GC.Collect();
+            }
+        }
+
+        sw.Stop();
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+
+        long finalAllocated = GC.GetTotalAllocatedBytes(true);
+        long finalWorkingSet = proc.WorkingSet64;
+        long finalPrivate = proc.PrivateMemorySize64;
+        int gen0After = GC.CollectionCount(0);
+        int gen1After = GC.CollectionCount(1);
+        int gen2After = GC.CollectionCount(2);
+
+        Console.WriteLine("--- Sequential summary ---");
+        Console.WriteLine($"Time: {sw.Elapsed}");
+        Console.WriteLine($"Allocated totalΔ: {FormatBytes(finalAllocated - initialAllocated)}");
+        Console.WriteLine($"WorkingSetΔ: {FormatBytes(finalWorkingSet - initialWorkingSet)} (Peak: {FormatBytes(peakWorkingSet)})");
+        Console.WriteLine($"PrivateMemΔ: {FormatBytes(finalPrivate - initialPrivate)}");
+        Console.WriteLine($"Gen0 collections: {gen0After - gen0Before}, Gen1: {gen1After - gen1Before}, Gen2: {gen2After - gen2Before}");
+        Console.WriteLine($"Avg allocated per iteration (approx): {FormatBytes((finalAllocated - initialAllocated) / iterations)}");
+
+        // Parallel test
+        Console.WriteLine();
+        Console.WriteLine("=== Parallel stress test ===");
+        const int parallelIterations = 5000; // reduce slightly to avoid excessive pressure
+        int degree = Environment.ProcessorCount;
+        Console.WriteLine($"Iterations: {parallelIterations}  DegreeOfParallelism: {degree}");
+
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+        long beforeParallelAllocated = GC.GetTotalAllocatedBytes(true);
+        long beforeParallelWS = proc.WorkingSet64;
+        var swPar = Stopwatch.StartNew();
+
+        Parallel.For(0, parallelIterations, new ParallelOptions { MaxDegreeOfParallelism = degree }, i =>
+        {
+            var licensingService = new LicensingService();
+            licensingService.SlasconeClientV2.ReadLicenseFile(licenseFilePath);
+            licensingService.SlasconeClientV2.IsFileSignatureValid(licenseFilePath);
+        });
+
+        swPar.Stop();
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+        long afterParallelAllocated = GC.GetTotalAllocatedBytes(true);
+        long afterParallelWS = proc.WorkingSet64;
+
+        Console.WriteLine("--- Parallel summary ---");
+        Console.WriteLine($"Time: {swPar.Elapsed}");
+        Console.WriteLine($"Allocated totalΔ: {FormatBytes(afterParallelAllocated - beforeParallelAllocated)}");
+        Console.WriteLine($"WorkingSetΔ: {FormatBytes(afterParallelWS - beforeParallelWS)}");
+        Console.WriteLine($"Avg allocated per iteration (approx): {FormatBytes((afterParallelAllocated - beforeParallelAllocated) / parallelIterations)}");
+    }
+    
+    private static string FormatBytes(long bytes)
+        => bytes switch
+        {
+            < 1024 => $"{bytes} B",
+            < 1024 * 1024 => $"{bytes / 1024.0:F2} KB",
+            < 1024L * 1024 * 1024 => $"{bytes / 1024.0 / 1024.0:F2} MB",
+            _ => $"{bytes / 1024.0 / 1024.0 / 1024.0:F2} GB"
+        };
+    
     public ISlasconeClientV2 SlasconeClientV2
         => _licensingService.SlasconeClientV2;
 }
