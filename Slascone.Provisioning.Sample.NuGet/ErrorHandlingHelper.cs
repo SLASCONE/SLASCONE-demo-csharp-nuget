@@ -32,9 +32,9 @@ namespace Slascone.Provisioning.Wpf.Sample.NuGet.Services
         }
 
         /// <summary>
-        /// Wait time between retries
+        /// Wait time between retries (in seconds)
         /// </summary>
-        private static readonly TimeSpan RetryWaitTime = TimeSpan.FromSeconds(15);
+        private static readonly int RetryWaitTime = 15;
 
         /// <summary>
         /// Do max 1 retry
@@ -85,11 +85,14 @@ namespace Slascone.Provisioning.Wpf.Sample.NuGet.Services
                         return (null, ErrorType.Network, null, $"{callerMemberName} received an error: Not authorized");
                     }
 
-                    // Transient error: Wait 15 seconds and try again
+                    // Transient error: Wait and try again
+                    // Get the wait time from the response header or use default
                     --retryCountdown;
                     if (0 <= retryCountdown)
                     {
-                        await Task.Delay(RetryWaitTime).ConfigureAwait(false);
+                        // Get retry-after period from response header or use default
+                        int retryAfterSeconds = GetRetryAfterPeriod(result.ApiException);
+                        await Task.Delay(TimeSpan.FromSeconds(retryAfterSeconds)).ConfigureAwait(false);
                     }
                 }
                 
@@ -101,6 +104,20 @@ namespace Slascone.Provisioning.Wpf.Sample.NuGet.Services
             }
 
             return (result?.Result, ErrorType.Network, result?.Error, errorMessage);
+        }
+
+        private static int GetRetryAfterPeriod(ApiException apiException)
+        {
+            if (apiException?.Headers.TryGetValue("Retry-After", out var retryAfterValues) ?? false)
+            {
+                var retryAfterValue = retryAfterValues.FirstOrDefault();
+                if (int.TryParse(retryAfterValue, out var retryAfterSeconds))
+                {
+                    return Math.Clamp(retryAfterSeconds, 5, 120);
+                }
+            }
+
+            return RetryWaitTime;
         }
     }
 }
