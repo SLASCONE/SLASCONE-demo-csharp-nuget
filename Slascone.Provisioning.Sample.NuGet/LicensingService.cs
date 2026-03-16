@@ -19,7 +19,7 @@ namespace Slascone.Provisioning.Sample.NuGet
 
         private string _licenseKey;
         private Guid? _tokenId;
-        private IDictionary<Guid, string> _limitationMap;
+        private IDictionary<Guid, (string Description, bool CanConsume)> _limitationMap;
         private Stack<Guid> _sessionIds = new Stack<Guid>();
 
         #region Construction
@@ -484,7 +484,7 @@ namespace Slascone.Provisioning.Sample.NuGet
         /// <summary>
         /// Gets the current limitation map containing limitation IDs and their descriptions.
         /// </summary>
-        public IDictionary<Guid, string> LimitationMap
+        public IDictionary<Guid, (string Description, bool CanConsume)> LimitationMap
             => _limitationMap;
 
         /// <summary>

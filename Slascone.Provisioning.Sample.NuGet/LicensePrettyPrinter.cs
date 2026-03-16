@@ -10,7 +10,7 @@ namespace Slascone.Provisioning.Sample.NuGet
         /// Displays license information, customer details, features, limitations, and variables.
         /// </summary>
         /// <param name="license">The license object to print</param>
-        public static IDictionary<Guid, string> PrintLicenseDetails(LicenseDto license)
+        public static IDictionary<Guid, (string Description, bool CanConsume)> PrintLicenseDetails(LicenseDto license)
         {
             if (license == null)
             {
@@ -213,12 +213,11 @@ namespace Slascone.Provisioning.Sample.NuGet
             }
 
             // Limitations
-            var limitationMap =
+            IDictionary<Guid, (string Description, bool CanConsume)> limitationMap =
                 license.License_limitations?.ToDictionary(
                     l => l.Limitation_id,
-                    l => $"{l.Limitation_name ?? ""} (max: {l.Limit})")
-                ?? new Dictionary<Guid, string>();
-
+                    l => ($"{l.Limitation_name ?? ""} (max: {l.Limit})", ConsumptionResetPeriod.Disabled !=  l.Consumption_reset_mode))
+                ?? new Dictionary<Guid, (string Description, bool CanConsume)>();
             if (license.License_limitations != null && license.License_limitations.Count > 0)
             {
                 Console.WriteLine("\nLimitations:");
@@ -463,12 +462,12 @@ namespace Slascone.Provisioning.Sample.NuGet
         /// </summary>
         /// <param name="licenseInfo">The LicenseInfoDto object to print</param>
         /// <returns>A dictionary of limitations for further use in the application</returns>
-        public static Dictionary<Guid, string> PrintLicenseDetails(LicenseInfoDto licenseInfo)
+        public static Dictionary<Guid, (string Description, bool CanConsume)> PrintLicenseDetails(LicenseInfoDto licenseInfo)
         {
             if (licenseInfo == null)
             {
                 Console.WriteLine("No license information available.");
-                return new Dictionary<Guid, string>();
+                return new Dictionary<Guid, (string Description, bool CanConsume)>();
             }
 
             Console.WriteLine($"License infos (Retrieved {licenseInfo.Created_date_utc}):");
@@ -661,8 +660,8 @@ namespace Slascone.Provisioning.Sample.NuGet
             var limitationMap =
                 licenseInfo.Limitations?.ToDictionary(
                     l => l.Id, 
-                    l => $"{l.Name} (max: {l.Value})")
-                ?? new Dictionary<Guid, string>();
+                    l => ($"{l.Name} (max: {l.Value})", ConsumptionResetPeriod.Disabled !=  l.Consumption_reset_mode))
+                ?? new Dictionary<Guid, (string Description, bool CanConsume)>();
 
             return limitationMap;
         }

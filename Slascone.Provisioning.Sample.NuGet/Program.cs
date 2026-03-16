@@ -262,7 +262,10 @@ class Program
         var consumptions = new List<(Guid, decimal)>();
         foreach (var kvp in _licensingService.LimitationMap)
         {
-			Console.Write($"Value for limitation '{kvp.Value}': ");
+            if (!kvp.Value.CanConsume)
+                continue;
+
+            Console.Write($"Value for limitation '{kvp.Value.Description}': ");
 			var input = Console.ReadLine();
 
             if (string.IsNullOrWhiteSpace(input) || !decimal.TryParse(input, out var value))
