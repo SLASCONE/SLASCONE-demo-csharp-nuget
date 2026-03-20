@@ -656,7 +656,7 @@ namespace Slascone.Provisioning.Sample.NuGet
 
             Console.WriteLine("\nLicense information successfully validated!");
 
-            // Create a dictionary of limitations similar to the Java implementation
+            // Create a dictionary of limitations
             var limitationMap =
                 licenseInfo.Limitations?.ToDictionary(
                     l => l.Id, 

@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
-using Slascone.Provisioning.Wpf.Sample.NuGet.Services;
+using Slascone.Provisioning.Sample.NuGet.Services;
 
 namespace Slascone.Provisioning.Sample.NuGet
 {
@@ -101,9 +101,28 @@ namespace Slascone.Provisioning.Sample.NuGet
             {
                 var result = await ErrorHandlingHelper.Execute(_slasconeClientV2.Provisioning.ActivateLicenseAsync, activateClientDto);
 
-                if (null == result.data)
+                if (ErrorHandlingHelper.ErrorType.None != result.errorType)
                 {
                     ReportError(result);
+
+                    // Handle different error types
+                    // - Functional error, SLASCONE API responded with HTTP status code 409:
+                    //   e.g. license key not valid, already used, etc.
+                    //   Your software should handle those errors depending on the error code 
+                    //   provided in the response body.
+                    //   For example, if the error code is 1001 ("The license is expired."), you might want
+                    //   to inform the user that the license key is no longer valid and suggest renewing it.
+                    //   You can find a list of possible error codes here:
+                    //   https://api.slascone.com/swagger/index.html?urls.primaryName=V2#/Provisioning/ActivateLicense
+                    //   Please also refer to the SLASCONE documentation for more details:
+                    //   https://support.slascone.com/hc/en-us/articles/11993387685789-ACTIVATE-A-LICENSE-CONSIDERATIONS
+                    //
+                    // - Technical error, SLASCONE API responded with HTTP status code != 409:
+                    //   e.g. invalid request, etc.
+                    //
+                    // - Network error, SLASCONE API did not respond at all:
+                    //   e.g. no internet connection, etc.
+
                     return;
                 }
 
@@ -142,11 +161,42 @@ namespace Slascone.Provisioning.Sample.NuGet
                 {
                     ReportError(result);
 
+                    // Handle different error types
+                    // - Functional error, SLASCONE API responded with HTTP status code 409:
+                    //   e.g. token not assigned, unknown client
+                    //   Your software should handle those errors depending on the error code
+                    //   provided in the response body.
+                    //   A typical response of the AddHeartbeat request is error code 2006 ("Unknown client").
+                    //   That means that a license activation is required to register the device with the SLASCONE server.
+                    //   You can find a list of possible error codes here:
+                    //   https://api.slascone.com/swagger/index.html?urls.primaryName=V2#/Provisioning/AddHeartbeat
+                    //
+                    // - Technical error, SLASCONE API responded with HTTP status code != 409:
+                    //   e.g. invalid request, etc.
+                    //
+                    // - Network error, SLASCONE API did not respond at all:
+                    //   e.g. no internet connection, etc.
+                    //
+                    // When successful heartbeats are received, the CombinedInterceptor class
+                    // automatically stores a local copy of the license information and its digital
+                    // signature in the application data folder. This temporary offline license can 
+                    // later be used through FileService.GetOfflineLicense() when the application 
+                    // cannot connect to the SLASCONE server. This provides offline operation capability
+                    // during temporary network outages while maintaining license validation security
+                    // through digital signature verification.
+
                     if (result.error is { Id: 2006 })
                     {
                         // A common error when the license is not activated yet for the current device.
                         // A typical handling could be to ask the user for a license key and call ActivateLicenseAsync.
                         Console.WriteLine("The license has to be activated first.");
+                    }
+
+                    if (ErrorHandlingHelper.ErrorType.Technical == result.errorType
+                        || ErrorHandlingHelper.ErrorType.Network == result.errorType)
+                    {
+                        // In case of technical or network errors, use license information stored for temporary offline operation if available.
+                        Console.WriteLine("Network or technical error occurred");
                     }
 
                     return;
@@ -188,6 +238,21 @@ namespace Slascone.Provisioning.Sample.NuGet
                 if (null == result.data)
                 {
                     ReportError(result);
+
+                    // Handle different error types
+                    // - Functional error, SLASCONE API responded with HTTP status code 409:
+                    //   e.g. unknown token, token already unassigned
+                    //   Your software should handle those errors depending on the error code
+                    //   provided in the response body.
+                    //   You can find a list of possible error codes here:
+                    //   https://api.slascone.com/swagger/index.html?urls.primaryName=V2#/Provisioning/UnassignLicense 
+                    //
+                    // - Technical error, SLASCONE API responded with HTTP status code != 409:
+                    //   e.g. invalid request, etc.
+                    //
+                    // - Network error, SLASCONE API did not respond at all:
+                    //   e.g. no internet connection, etc.
+                    
                     return;
                 }
 
@@ -233,6 +298,23 @@ namespace Slascone.Provisioning.Sample.NuGet
                 if (null == result.data)
                 {
                     ReportError(result);
+
+                    // Handle different error types
+                    // - Functional error, SLASCONE API responded with HTTP status code 409:
+                    //   e.g. unknown analytical field, invalid value, etc.
+                    //   Your software should handle those errors depending on the error code
+                    //   provided in the response body.
+                    //   You can find a list of possible error codes here:
+                    //   https://api.slascone.com/swagger/index.html?urls.primaryName=V2#/DataGathering/AddAnalyticalHeartbeat
+                    //   Find more details about analytics in the SLASCONE documentation:
+                    //   https://support.slascone.com/hc/en-us/articles/360016055537-PRODUCT-ANALYTICS
+                    //
+                    // - Technical error, SLASCONE API responded with HTTP status code != 409:
+                    //   e.g. invalid request, etc.
+                    //
+                    // - Network error, SLASCONE API did not respond at all:
+                    //   e.g. no internet connection, etc.
+                    
                     return;
                 }
 
@@ -276,6 +358,23 @@ namespace Slascone.Provisioning.Sample.NuGet
                 if (null == result.data)
                 {
                     ReportError(result);
+
+                    // Handle different error types
+                    // - Functional error, SLASCONE API responded with HTTP status code 409:
+                    //   e.g. unknown usage feature, invalid value, etc.
+                    //   Your software should handle those errors depending on the error code
+                    //   provided in the response body.
+                    //   You can find a list of possible error codes here:
+                    //   https://api.slascone.com/swagger/index.html?urls.primaryName=V2#/DataGathering/AddUsageHeartbeat
+                    //   Find more details about usage analytics in the SLASCONE documentation:
+                    //   https://support.slascone.com/hc/en-us/articles/360016055537-PRODUCT-ANALYTICS
+                    //
+                    // - Technical error, SLASCONE API responded with HTTP status code != 409:
+                    //   e.g. invalid request, etc.
+                    //
+                    // - Network error, SLASCONE API did not respond at all:
+                    //   e.g. no internet connection, etc.
+                    
                     return;
                 }
 
@@ -320,6 +419,23 @@ namespace Slascone.Provisioning.Sample.NuGet
                 if (null == result.data)
                 {
                     ReportError(result);
+
+                    // Handle different error types
+                    // - Functional error, SLASCONE API responded with HTTP status code 409:
+                    //   e.g. unknown limitation, invalid value, etc.
+                    //   Your software should handle those errors depending on the error code
+                    //   provided in the response body.
+                    //   You can find a list of possible error codes here:
+                    //   https://api.slascone.com/swagger/index.html?urls.primaryName=V2#/DataGathering/AddConsumptionHeartbeat
+                    //   Find more details in the SLASCONE documentation:
+                    //   https://support.slascone.com/hc/en-us/articles/360016055537-PRODUCT-ANALYTICS
+                    //
+                    // - Technical error, SLASCONE API responded with HTTP status code != 409:
+                    //   e.g. invalid request, etc.
+                    //
+                    // - Network error, SLASCONE API did not respond at all:
+                    //   e.g. no internet connection, etc.
+                    
                     return;
                 }
 
@@ -371,6 +487,35 @@ namespace Slascone.Provisioning.Sample.NuGet
                 if (null == result.data)
                 {
                     ReportError(result);
+
+                    // Handle different error types
+                    // - Functional error, SLASCONE API responded with HTTP status code 409:
+                    //   e.g. 
+                    //   Your software should handle those errors depending on the error code
+                    //   provided in the response body.
+                    //   A typical response of the OpenSession request is error code 1007 ("The number of allowed connections has been reached.").
+                    //   That means that the maximum number of concurrent usage seats for the license has been reached.
+                    //   Depending on your company's policy, you might allow overusage or strictly enforce the limit.
+                    //   You can find a list of possible error codes here:
+                    //   https://api.slascone.com/swagger/index.html?urls.primaryName=V2#/Provisioning/OpenSession
+                    //   Please also refer to the SLASCONE documentation for more details on floating licenses:
+                    //   https://support.slascone.com/hc/en-us/articles/360016152858-FLOATING-DEVICE-LICENSES
+                    //   https://support.slascone.com/hc/en-us/articles/7756256586653-FLOATING-USER-LICENSES
+                    //
+                    // - Technical error, SLASCONE API responded with HTTP status code != 409:
+                    //   e.g. invalid request, etc.
+                    //
+                    // - Network error, SLASCONE API did not respond at all:
+                    //   e.g. no internet connection, etc.
+                    //
+                    // When a session is successfully opened, the CombinedInterceptor automatically
+                    // stores the session information and its digital signature in the application
+                    // data folder. This cached session data can be accessed through the 
+                    // FileService.TryFindOpenSessionOffline() method when network connectivity
+                    // is unavailable. This enables your application to continue operation during
+                    // temporary network outages while still respecting session time limits through
+                    // the stored session expiration timestamp. See the findOpenSessionOffline() method
+                    // in Program.java for an example of how to utilize this functionality.
 
                     if (result.error is { Id: 1007 })
                     {
@@ -425,6 +570,22 @@ namespace Slascone.Provisioning.Sample.NuGet
                 if (null == result.data)
                 {
                     ReportError(result);
+
+                    // Handle different error types
+                    // - Functional error, SLASCONE API responded with HTTP status code 409:
+                    //   e.g. unknown session, session already closed, etc.
+                    //   Your software should handle those errors depending on the error code
+                    //   provided in the response body.
+                    //   You can find a list of possible error codes here:
+                    //   https://api.slascone.com/swagger/index.html?urls.primaryName=V2#/Provisioning/CloseSession
+                    //   Please also refer to the SLASCONE documentation for more details on floating licenses:
+                    //   https://support.slascone.com/hc/en-us/articles/360016152858-FLOATING-DEVICE-LICENSES
+                    //   https://support.slascone.com/hc/en-us/articles/7756256586653-FLOATING-USER-LICENSES
+                    // - Technical error, SLASCONE API responded with HTTP status code != 409:
+                    //   e.g. invalid request, etc.
+                    // - Network error, SLASCONE API did not respond at all:
+                    //   e.g. no internet connection, etc.
+                    
                     return;
                 }
 
