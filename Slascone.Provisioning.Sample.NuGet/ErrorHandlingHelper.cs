@@ -2,8 +2,9 @@
 using System;
 using System.Net;
 using System.Runtime.CompilerServices;
+using static Slascone.Provisioning.Sample.NuGet.Services.ErrorHandlingHelper;
 
-namespace Slascone.Provisioning.Wpf.Sample.NuGet.Services
+namespace Slascone.Provisioning.Sample.NuGet.Services
 {
     /// <summary>
     /// Helper class to handle errors and standard retries while calling the SLASCONE API.
@@ -26,7 +27,12 @@ namespace Slascone.Provisioning.Wpf.Sample.NuGet.Services
             Functional,
 
             /// <summary>
-            /// Technical error in the system (e.g., internal server error) or network or connectivity issue
+            /// Technical error in the system (e.g., internal server error)
+            /// </summary>
+            Technical,
+
+            /// <summary>
+            /// Network or connectivity issue
             /// </summary>
             Network
         }
@@ -57,7 +63,7 @@ namespace Slascone.Provisioning.Wpf.Sample.NuGet.Services
             where TOut : class
         {
             string errorMessage = null;
-            ApiResponse<TOut> result = null;
+            ApiResponse<TOut> response = null;
 
             try
             {
@@ -66,49 +72,93 @@ namespace Slascone.Provisioning.Wpf.Sample.NuGet.Services
                 while (0 <= retryCountdown)
                 {
                     // Call the SLASCONE API endpoint
-                    result = await func.Invoke(argument).ConfigureAwait(false);
+                    response = await func.Invoke(argument).ConfigureAwait(false);
 
-                    if ((int)HttpStatusCode.OK == result.StatusCode)
+                    if ((int)HttpStatusCode.OK == response.StatusCode)
                     {
                         // Success
-                        return (result.Result, ErrorType.None, null, null);
-                    }
-                    else if ((int)HttpStatusCode.Conflict == result.StatusCode)
-                    {
-                        // Functional error: Return error message
-                        return (null, ErrorType.Functional, result.Error, $"{callerMemberName} received an error: {result.Error.Message} (Id: {result.Error.Id})");
-                    }
-                    else if ((int)HttpStatusCode.Unauthorized == result.StatusCode
-                             || (int)HttpStatusCode.Forbidden == result.StatusCode)
-                    {
-                        // Unauthorized or forbidden: Return error message
-                        return (null, ErrorType.Network, null, $"{callerMemberName} received an error: Not authorized");
+                        return (response.Result, ErrorType.None, null, null);
                     }
 
-                    // Transient error: Wait and try again
-                    // Get the wait time from the response header or use default
-                    --retryCountdown;
-                    if (0 <= retryCountdown)
+                    // Error handling based on status code
+                    if ((int)HttpStatusCode.Conflict == response.StatusCode)
                     {
-                        // Get retry-after period from response header or use default
-                        int retryAfterSeconds = GetRetryAfterPeriod(result.ApiException);
-                        await Task.Delay(TimeSpan.FromSeconds(retryAfterSeconds)).ConfigureAwait(false);
+                        // Functional error: Return error message
+                        return (null, ErrorType.Functional, response.Error,
+                            $"{callerMemberName} received an error: {response.Error.Message} (Id: {response.Error.Id})");
                     }
+                    else if ((int)HttpStatusCode.Unauthorized == response.StatusCode
+                             || (int)HttpStatusCode.Forbidden == response.StatusCode)
+                    {
+                        // Unauthorized or forbidden: Return error message
+                        return (null, ErrorType.Technical, null,
+                            $"{callerMemberName} received an error: Not authorized");
+                    }
+
+                    var isTransientStatusCode = IsTransientError(response.StatusCode);
+                    var isTransientException = IsTransientError(response.ApiException);
+
+                    if (isTransientStatusCode || isTransientException)
+                    {
+                        // Transient error: Wait and try again
+                        // Get the wait time from the response header or use default
+                        --retryCountdown;
+                        if (0 <= retryCountdown)
+                        {
+                            // Get retry-after period from response header or use default
+                            int retryAfterSeconds = GetRetryAfterPeriod(response.ApiException);
+                            await Task.Delay(TimeSpan.FromSeconds(retryAfterSeconds)).ConfigureAwait(false);
+                            continue;
+                        }
+                    }
+
+                    var errorType = null != response.ApiException?.InnerException && typeof(HttpRequestException) ==
+                        response.ApiException?.InnerException.GetType()
+                            ? ErrorType.Network
+                            : ErrorType.Technical;
+
+                    errorMessage = null != response.ApiException
+                        ? $"{callerMemberName} received an error: {response.ApiException.Message}"
+                        : $"{callerMemberName} received an error (status code: {response.StatusCode}; message: '{response.Message}')";
+
+                    return (null, errorType, null, errorMessage);
                 }
-                
-                errorMessage = $"{callerMemberName} received an error after {MaxRetryCount} retries:  {result.StatusCode} (Id: {result.Message})";
+
+                return (null, ErrorType.Technical, null, null);
             }
             catch (Exception ex)
             {
-                errorMessage = $"{callerMemberName} threw an exception: {ex.Message}";
+                return (response?.Result, ErrorType.Technical, response?.Error, errorMessage);
             }
+        }
 
-            return (result?.Result, ErrorType.Network, result?.Error, errorMessage);
+        private static bool IsTransientError(ApiException exception)
+        {
+            if (exception?.InnerException != null && typeof(HttpRequestException) == exception.InnerException.GetType())
+            {
+                return true;
+            }
+            if (exception != null)
+            {
+                return IsTransientError(exception.StatusCode);
+            }
+            return false;
+        }
+
+        private static bool IsTransientError(int httpStatusCode)
+        {
+            return httpStatusCode == 408 || // Request Timeout
+                   httpStatusCode == 429 || // Too Many Requests
+                   httpStatusCode == 500 || // Internal Server Error
+                   httpStatusCode == 502 || // Bad Gateway
+                   httpStatusCode == 503 || // Service Unavailable
+                   httpStatusCode == 504 || // Gateway Timeout
+                   httpStatusCode == 507; // Insufficient Storage
         }
 
         private static int GetRetryAfterPeriod(ApiException apiException)
         {
-            if (apiException?.Headers.TryGetValue("Retry-After", out var retryAfterValues) ?? false)
+            if (apiException?.Headers?.TryGetValue("Retry-After", out var retryAfterValues) ?? false)
             {
                 var retryAfterValue = retryAfterValues.FirstOrDefault();
                 if (int.TryParse(retryAfterValue, out var retryAfterSeconds))
