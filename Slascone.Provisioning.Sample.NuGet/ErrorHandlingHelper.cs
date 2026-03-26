@@ -119,7 +119,9 @@ namespace Slascone.Provisioning.Sample.NuGet.Services
 
                     errorMessage = null != response.ApiException
                         ? $"{callerMemberName} received an error: {response.ApiException.Message}"
-                        : $"{callerMemberName} received an error (status code: {response.StatusCode}; message: '{response.Message}')";
+                        : 0 < response.StatusCode
+                            ? $"{callerMemberName} received an error (status code: {response.StatusCode}; message: '{response.Message}')"
+                            : $"{callerMemberName} received an error (message: '{response.Message}')";
 
                     return (null, errorType, null, errorMessage);
                 }
