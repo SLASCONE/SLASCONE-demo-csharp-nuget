@@ -657,6 +657,7 @@ namespace Slascone.Provisioning.Sample.NuGet
         private static void ReportError<T>((T data, ErrorHandlingHelper.ErrorType errorType, ErrorResultObjects error, string message) result, [CallerMemberName] string caller = "")
         {
             Console.WriteLine($"Error during {caller}:");
+            Console.WriteLine($"Error type: {result.errorType.ToString()}");
 
             if (null != result.error)
             {
@@ -665,7 +666,6 @@ namespace Slascone.Provisioning.Sample.NuGet
             }
             else
             {
-                Console.WriteLine($"Error type: {result.errorType.ToString()}");
                 Console.WriteLine($"Error message: {result.message}");
             }
         }
