@@ -31,7 +31,6 @@ The application starts with an interactive menu. By default, it connects to a SL
 
 * [Quick Start](#quick-start)
 * [What This Sample Demonstrates](#what-this-sample-demonstrates)
-* [Getting Started](#getting-started)
 * [Connecting to Your SLASCONE Environment](#connecting-to-your-slascone-environment)
 * [Typical Licensing Flow](#typical-licensing-flow)
 * [Offline Licensing and Freeride Period](#offline-licensing-and-freeride-period)
@@ -159,28 +158,6 @@ This sample application showcases the following key features of the SLASCONE lic
      
 **Replay Protection**
    * Uses a nonce-based challenge-response flow
-
-## Getting Started
-
-### Requirements
-
-* .NET 8 or newer
-
-### Build
-
-```bash
-dotnet build
-```
-
-### Run
-
-```bash
-dotnet run --project Slascone.Provisioning.Sample.NuGet
-```
-
-After starting the application, use the interactive menu to explore the different licensing and analytics scenarios.
-
-For integration into your own software product, focus on the parts that match your licensing model and runtime requirements.
 
 ## Connecting to Your SLASCONE Environment
 
