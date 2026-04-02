@@ -3,7 +3,7 @@
 This console sample shows how to integrate a software licensing platform via API, including license management, entitlement management, usage analytics, floating licenses, and offline licensing.
 Going beyond simple API connectivity, it is designed as a production-oriented integration template for real-world licensing scenarios, including temporary offline operation, local license caching, and resilient handling of transient technical failures such as 5xx responses.
 
-It includes examples for the most important licensing, analytics, and resilience workflows:
+It includes examples for the most important licensing, analytics, and resilience workflows: The sample is intentionally built around the [SLASCONE NuGet Client](https://www.nuget.org/packages/Slascone.Client/), which provides a higher-level integration layer for common licensing workflows such as heartbeat handling, offline license access, and local caching.
 
 * license activation and heartbeat
 * floating session management
@@ -39,7 +39,7 @@ The application starts with an interactive menu. By default, it connects to a SL
 * [Error Handling and Retry Logic](#error-handling-and-retry-logic)
 * [Technical Details](#technical-details)
 * [Project Structure](#project-structure)
-* [API Client](#api-client)
+* [SLASCONE NuGet Client](#slascone-nuget-client)
 * [Further Reading](#further-reading)
 
 ## What This Sample Demonstrates
@@ -469,9 +469,10 @@ SLASCONE-demo-csharp-nuget/               # Root project
 └── README.md                             # This documentation file
 ```
 
-## API Client
+## SLASCONE NuGet Client
+## SLASCONE NuGet Client
 
-This application uses the official [NuGet SLASCONE client](https://www.nuget.org/packages/Slascone.Client).
+This sample is built on the [SLASCONE NuGet Client](https://www.nuget.org/packages/Slascone.Client) rather than direct API calls. The client provides a higher-level integration layer for common licensing workflows and supports features such as offline access, local persistence, and resilient request handling.
 
 ## Further Reading
 
