@@ -15,8 +15,21 @@ It includes examples for the most important licensing, analytics, and resilience
 
 For more information, see the [SLASCONE website](https://slascone.com/), the [Help Center](https://support.slascone.com/), and the [API Test Center](https://api365.slascone.com/swagger).
 
+## Quick Start
+
+```bash
+# Build the project
+dotnet build
+
+# Run the interactive sample
+dotnet run --project Slascone.Provisioning.Sample.NuGet
+```
+
+The application starts with an interactive menu. By default, it connects to a SLASCONE demo environment so you can explore the licensing and analytics scenarios immediately.
+
 ## Table of Contents
 
+* [Quick Start](#quick-start)
 * [What This Sample Demonstrates](#what-this-sample-demonstrates)
 * [Getting Started](#getting-started)
 * [Connecting to Your SLASCONE Environment](#connecting-to-your-slascone-environment)
@@ -45,25 +58,29 @@ This sample application showcases the following key features of the SLASCONE lic
    * Retrieves up-to-date license information including features, limitations, and expiration details
    * Caches license information for offline use
 
-   ```java
+   ```csharp
    // Build the heartbeat request with the current device and product info
-   AddHeartbeatDto heartbeat = new AddHeartbeatDto()
-       .clientId(DeviceInfoService.getUniqueDeviceId())
-       .productId(UUID.fromString(Settings.PRODUCT_ID))
-       .softwareVersion("25.2.0");
+   var heartbeatDto = new AddHeartbeatDto
+   {
+       Product_id = Settings.ProductId,
+       Client_id = DeviceInfoService.GetUniqueDeviceId(),
+       Software_version = Settings.SoftwareVersion,
+       Operating_system = DeviceInfoService.GetOperatingSystem()
+   };
 
    // Execute with automatic retry logic for transient failures
-   var result = ErrorHandlingHelper.execute(
-       provisioningApi::addHeartbeatWithHttpInfo, heartbeat, "addHeartbeat");
+   var result = await ErrorHandlingHelper.Execute(
+       _slasconeClientV2.Provisioning.AddHeartbeatAsync, heartbeatDto);
 
-   if (result.hasError()) {
+   if (result.data == null)
+   {
        // On network/technical errors, fall back to cached license data
        // On functional errors (e.g., 2006 = unknown client), handle accordingly
    }
 
-   // On success, the CombinedInterceptor automatically caches the license
-   // response (license.txt + license_signature.txt) for offline use
-   LicenseInfoDto licenseInfo = result.getResult();
+   // On success, the client automatically caches the license
+   // response (license.json + license_signature.txt) for offline use
+   LicenseInfoDto licenseInfo = result.data;
    ```
      
 **License Activation (offline)**
@@ -76,14 +93,17 @@ This sample application showcases the following key features of the SLASCONE lic
    * Uses cached license data stored during the last successful heartbeat
    * Ensures the software can continue to function during temporary network outages
 
-   ```java
+   ```csharp
    // Read and validate the cached license when the server is unreachable
-   LicenseInfoDto licenseInfo = fileService.GetOfflineLicense();
+   var licenseInfo = _slasconeClientV2.GetOfflineLicense();
 
-   if (licenseInfo != null) {
+   if (licenseInfo != null)
+   {
        // The signature was verified — the cached data has not been tampered with
        // Use licenseInfo to enforce features, limitations, and expiration as usual
-   } else {
+   }
+   else
+   {
        // No valid cached license available (missing, expired, or tampered)
    }
    ```
@@ -146,6 +166,18 @@ This sample application showcases the following key features of the SLASCONE lic
 
 * .NET 8 or newer
 
+### Build
+
+```bash
+dotnet build
+```
+
+### Run
+
+```bash
+dotnet run --project Slascone.Provisioning.Sample.NuGet
+```
+
 After starting the application, use the interactive menu to explore the different licensing and analytics scenarios.
 
 For integration into your own software product, focus on the parts that match your licensing model and runtime requirements.
@@ -198,8 +230,8 @@ This sample demonstrates how to implement this behavior.
    * All relevant license rules such as features, limitations, and expiration continue to be enforced based on the cached state
 3. **Implementation**
 
-   * The sample stores license data in `license.txt` and its signature in `license_signature.txt`
-   * For floating licenses, session information is stored in `session.txt` and `session_signature.txt`
+   * The sample stores license data in `license.json` and its signature in `license_signature.txt`
+   * For floating licenses, session information is stored in `session.token`
    * The sample demonstrates how to read and validate this information in offline mode
 
 ### Freeride Period
@@ -262,8 +294,11 @@ By default, the application data is stored in:
 #### Custom Location
 
 
-The application data folder is managed by the `SlasconeClientV2` class. To use a custom location for application data, you need to specify it when initializing the client:
+The application data folder is managed by the `SlasconeClientV2` class. To use a custom location for application data, specify it when initializing the client:
+
+```csharp
 _slasconeClientV2.SetAppDataFolder("<custom path>");
+```
 
 #### Stored Files
 
@@ -304,7 +339,7 @@ The `ErrorHandlingHelper` classifies API errors into three categories.
 3. **Network Errors**
 
    * Represent connectivity issues such as socket timeouts, connection refusals, DNS resolution failures, or SSL errors
-   * Transient network exceptions such as `SocketTimeoutException`, `ConnectException`, and `UnknownHostException` are automatically retried
+   * Transient network exceptions such as `HttpRequestException` are automatically retried
    * Non-transient network exceptions are returned immediately
 
 ### Retry Logic
@@ -313,11 +348,11 @@ The `ErrorHandlingHelper` implements automatic retry logic for transient errors.
 
 1. **Retry Count**
 
-   * By default, the helper performs a maximum of one automatic retry via `MAX_RETRY_COUNT`
+   * By default, the helper performs a maximum of one automatic retry via `MaxRetryCount`
    * This follows the SLASCONE recommendation of a moderate retry policy
 2. **Wait Time**
 
-   * The default wait time between retries is 30 seconds via `RETRY_WAIT_TIME`
+   * The default wait time between retries is 15 seconds via `RetryWaitTime`
 3. **Retry-After Header**
 
    * For HTTP errors that include a `Retry-After` response header, commonly with `429` or `503`, the helper uses the server-specified wait time instead of the default
@@ -328,44 +363,43 @@ The `ErrorHandlingHelper` implements automatic retry logic for transient errors.
 
 ### Handling API Responses
 
-All API calls wrapped by `ErrorHandlingHelper.execute()` return a `ResultWithError` object, which encapsulates either a successful result or error details.
+All API calls wrapped by `ErrorHandlingHelper.Execute()` return a tuple `(TOut data, ErrorType errorType, ErrorResultObjects error, string message)`, which encapsulates either a successful result or error details.
 
 1. **Success Check**
 
-   * Call `result.hasError()` to determine whether the API call succeeded or failed
+   * Check `result.data` to determine whether the API call succeeded or failed
 2. **Success Path**
 
-   * Use `result.getResult()` to access the API response data such as `LicenseInfoDto` or `SessionStatusDto`
+   * Use `result.data` to access the API response data such as `LicenseInfoDto` or `SessionStatus`
 3. **Error Inspection**
 
-   * When an error occurs, use the following methods:
+   * When an error occurs, use the following properties:
 
-     * `result.getErrorType()` returns the error category: `FUNCTIONAL`, `TECHNICAL`, or `NETWORK`
-     * `result.getErrorMessage()` returns a formatted error description
-     * `result.getErrorResult()` returns the parsed `ErrorResultObjects` for functional errors
-     * `result.getApiException()` provides access to the underlying `ApiException` for advanced handling
+     * `result.errorType` returns the error category: `Functional`, `Technical`, or `Network`
+     * `result.message` returns a formatted error description
+     * `result.error` returns the parsed `ErrorResultObjects` for functional errors
 4. **Usage Example**
 
-```java
-var result = ErrorHandlingHelper.execute(
-    provisioningApi::activateLicenseWithHttpInfo,
-    activateInfo,
-    "activateLicense"
-);
+```csharp
+var result = await ErrorHandlingHelper.Execute(
+    _slasconeClientV2.Provisioning.ActivateLicenseAsync,
+    activateClientDto);
 
-if (result.hasError()) {
-    System.out.println("Error Type: " + result.getErrorType().toString());
-    System.out.println("Message: " + result.getErrorMessage());
+if (ErrorHandlingHelper.ErrorType.None != result.errorType)
+{
+    Console.WriteLine($"Error Type: {result.errorType}");
+    Console.WriteLine($"Message: {result.message}");
 
-    if (ErrorType.FUNCTIONAL == result.getErrorType() && result.getErrorResult() != null) {
+    if (ErrorHandlingHelper.ErrorType.Functional == result.errorType && result.error != null)
+    {
         // Handle specific business logic error codes
-        int errorId = result.getErrorResult().getId();
+        int errorId = result.error.Id;
     }
 
     return;
 }
 
-LicenseInfoDto licenseInfo = result.getResult();
+LicenseInfoDto licenseInfo = result.data;
 ```
 
 ### Recommended Error Handling Strategy
@@ -375,7 +409,7 @@ Based on the SLASCONE error handling guidelines, consider the following strategi
 1. **Always Handle HTTP 409 Explicitly**
 
    * These are business logic responses, not unexpected errors
-   * Check the specific error code from `getErrorResult().getId()` and handle each case according to your application's needs
+   * Check the specific error code from `result.error.Id` and handle each case according to your application's needs
    * Refer to the endpoint-specific documentation in the [SLASCONE API](https://api365.slascone.com/swagger) for possible conflict scenarios
 2. **Fallback for Transient Failures**
 
@@ -394,16 +428,16 @@ Based on the SLASCONE error handling guidelines, consider the following strategi
 
 ### Environment Requirements
 
+* **.NET Version**: .NET 8 or newer is required. The project was developed and tested with .NET 8.
 * **Network**: Internet connectivity is required for initial license activation and for online heartbeat operations
 
 ### Dependencies Overview
 
 This application relies on several key libraries:
 
-* **Apache HTTP Client** for REST API communication with the SLASCONE server
-* **Jackson and Gson** for JSON and XML serialization and deserialization
-* **Apache Commons Codec** for encoding and decoding operations
-* **XML Security** for digital signature validation of license files
+* **[Slascone.Client](https://www.nuget.org/packages/Slascone.Client)** for REST API communication with the SLASCONE server, including JSON serialization and offline license management
+* **System.Management** for WMI-based device identification on Windows
+* **System.Security.Cryptography.Pkcs** and **System.Security.Cryptography.Xml** for digital signature validation of license files and server responses
 
 ### Cross-Platform Compatibility
 
