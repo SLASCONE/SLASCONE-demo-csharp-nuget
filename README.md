@@ -1,9 +1,8 @@
 # SLASCONE C# Licensing & Analytics Sample
 
-This console sample shows how to integrate a software licensing platform via API, including license management, entitlement management, usage analytics, floating licenses, and offline licensing.
-Going beyond simple API connectivity, it is designed as a production-oriented integration template for real-world licensing scenarios, including temporary offline operation, local license caching, and resilient handling of transient technical failures such as 5xx responses.
+This C# console sample shows how to integrate SLASCONE into a software product by using the [SLASCONE NuGet Client](https://www.nuget.org/packages/Slascone.Client/). It covers license management, entitlement management, usage analytics, floating licenses, and offline licensing. Going beyond simple API connectivity, it is designed as a production-oriented integration template for real-world licensing scenarios, including temporary offline operation, local license caching, and resilient handling of transient technical failures such as 5xx responses.
 
-It includes examples for the most important licensing, analytics, and resilience workflows: The sample is intentionally built around the [SLASCONE NuGet Client](https://www.nuget.org/packages/Slascone.Client/), which provides a higher-level integration layer for common licensing workflows such as heartbeat handling, offline license access, and local caching.
+It includes examples for the most important licensing, analytics, and resilience workflows:
 
 * license activation and heartbeat
 * floating session management
@@ -446,7 +445,6 @@ SLASCONE-demo-csharp-nuget/               # Root project
 └── README.md                             # This documentation file
 ```
 
-## SLASCONE NuGet Client
 ## SLASCONE NuGet Client
 
 This sample is built on the [SLASCONE NuGet Client](https://www.nuget.org/packages/Slascone.Client) rather than direct API calls. The client provides a higher-level integration layer for common licensing workflows and supports features such as offline access, local persistence, and resilient request handling.
