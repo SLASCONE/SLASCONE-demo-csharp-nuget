@@ -275,8 +275,6 @@ The following files are managed in the application data folder:
 
 All files are automatically created, updated, and removed as needed during application operation.
 
-All files are automatically created, updated, and removed as needed during application operation.
-
 ## Error Handling and Retry Logic
 
 For detailed information about SLASCONE API error codes, refer to the [SLASCONE error handling documentation](https://support.slascone.com/hc/en-us/articles/360016160398).
