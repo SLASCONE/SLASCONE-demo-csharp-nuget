@@ -18,6 +18,9 @@ class Program
     // This is a sample license key for demonstration purposes only.
     string _license_key = "27180460-29df-4a5a-a0a1-78c85ab6cee0";    // Find your own license key at : https://my.slascone.com/licenses
 
+    // Name of a sample license file included in the project for demonstration purposes.
+    string _licenseFileXmlName = "License-91fad880-90c4-46cb-8d8b-0a12445c6f0e.xml";
+
     /// <summary>
     /// Initializes a new instance of the Program class.
     /// Creates and configures the licensing service.
@@ -85,7 +88,7 @@ class Program
             Console.Write("> ");
 			input = Console.ReadLine();
 
-			switch (input)
+            switch (input)
 			{
 				case "1":
 					await _licensingService.ActivateLicenseAsync(_license_key);
@@ -128,12 +131,12 @@ class Program
 					break;
 
 				case "11":
-					IsLicenseFileSignatureValid(Path.Combine("..", "..", "..", "Assets", "License-91fad880-90c4-46cb-8d8b-0a12445c6f0e.xml"));
+					IsLicenseFileSignatureValid(Path.Combine("..", "..", "..", "Assets", _licenseFileXmlName));
 					break;
 
 				case "12":
 					OfflineLicenseActivationExample(
-						Path.Combine("..", "..", "..", "Assets", "License-91fad880-90c4-46cb-8d8b-0a12445c6f0e.xml"),
+						Path.Combine("..", "..", "..", "Assets", _licenseFileXmlName),
 						Path.Combine("..", "..", "..", "Assets", "ActivationFile.xml"));
 					break;
 
