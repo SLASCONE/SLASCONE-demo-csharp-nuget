@@ -223,7 +223,7 @@ namespace Slascone.Provisioning.Sample.NuGet
                 Console.WriteLine("\nLimitations:");
                 foreach (var limitation in license.License_limitations)
                 {
-                    Console.WriteLine($"- {limitation.Limitation_name ?? ""}: {limitation.Limit}");
+                    Console.WriteLine($"- {limitation.Limitation_name ?? ""}: {(limitation.Limit.HasValue ? limitation.Limit.Value.ToString() : "unlimited")}");
                 }
             }
             else
@@ -431,7 +431,7 @@ namespace Slascone.Provisioning.Sample.NuGet
                 Console.WriteLine("\nLimitations:");
                 foreach (var limitation in licenseXml.Limitations)
                 {
-                    Console.WriteLine($"- {limitation.Name}: {limitation.Value}");
+                    Console.WriteLine($"- {limitation.Name}: {(limitation.Value.HasValue ? limitation.Value.Value.ToString() : "unlimited")}");
                 }
             }
             else
@@ -625,7 +625,7 @@ namespace Slascone.Provisioning.Sample.NuGet
                 Console.WriteLine("\nLimitations:");
                 foreach (var limitation in licenseInfo.Limitations)
                 {
-                    Console.WriteLine($"- {limitation.Name ?? ""}: {limitation.Value}");
+                    Console.WriteLine($"- {limitation.Name ?? ""}: {(limitation.Value.HasValue ? limitation.Value.Value.ToString() : "unlimited")}");
                 }
             }
             else
