@@ -62,6 +62,7 @@ class Program
 		string input;
 		do
 		{
+            Console.WriteLine("-------------------------------------------------------------------------------------------------------------");
             Console.WriteLine("-- MAIN");
             Console.WriteLine("    1: Activate license (can be done only once per device)");
             Console.WriteLine("    2: Add license heartbeat (license check)");
