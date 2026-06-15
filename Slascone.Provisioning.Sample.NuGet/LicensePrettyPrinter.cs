@@ -645,7 +645,10 @@ namespace Slascone.Provisioning.Sample.NuGet
             {
                 Console.WriteLine("\nSoftware Version Information:");
                 Console.WriteLine("----------------------------");
-                Console.WriteLine($"Is Software Version Valid: {licenseInfo.Is_software_version_valid}");
+                if (licenseInfo.Is_software_version_valid)
+                    Console.WriteLine("Software version is valid");
+                else
+                    Console.WriteLine("\n===> Software version is not valid <===\n");
                 Console.WriteLine($"Enforce Software Upgrade: {licenseInfo.Enforce_software_version_upgrade}");
 
                 if (!string.IsNullOrEmpty(swLimitation.Software_release))
