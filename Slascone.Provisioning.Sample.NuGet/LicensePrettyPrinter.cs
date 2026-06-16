@@ -1,4 +1,5 @@
-﻿using Slascone.Client;
+﻿using System.Security.Cryptography;
+using Slascone.Client;
 using Slascone.Client.Xml;
 
 namespace Slascone.Provisioning.Sample.NuGet
@@ -117,73 +118,6 @@ namespace Slascone.Provisioning.Sample.NuGet
                 Console.WriteLine($"Last Modified By: {license.Last_modified_by ?? "N/A"}");
             }
 
-            // Expiration information
-            Console.WriteLine("\nLicense Validity Status:");
-            Console.WriteLine("-----------------------");
-            
-            bool isExpired = false;
-            if (license.Expiration_date_utc.HasValue)
-            {
-                Console.WriteLine($"Expiration Date: {license.Expiration_date_utc.Value.ToString(dateFormat)}");
-                
-                // Check if perpetual (year 9999)
-                if (license.Expiration_date_utc.Value.Year >= 9999)
-                {
-                    Console.WriteLine("This is a perpetual license.");
-                }
-                else
-                {
-                    // Calculate remaining days
-                    long daysRemaining = (license.Expiration_date_utc.Value - DateTime.UtcNow).Days;
-                    isExpired = daysRemaining < 0;
-                    
-                    if (isExpired)
-                    {
-                        long expiredDays = Math.Abs(daysRemaining);
-                        Console.WriteLine($"License is expired since {expiredDays} day(s).");
-                    }
-                    else
-                    {
-                        Console.WriteLine($"License is valid for another {daysRemaining} day(s) until {license.Expiration_date_utc.Value.ToString(dateFormat)}.");
-                    }
-                }
-            }
-            else
-            {
-                Console.WriteLine("License has no expiration date.");
-            }
-
-            // Software version information
-            var swLimitation = license.Software_release_limitation;
-            if (swLimitation != null || !string.IsNullOrEmpty(license.Prioritized_software_release))
-            {
-                Console.WriteLine("\nSoftware Version Information:");
-                Console.WriteLine("----------------------------");
-                
-                if (!string.IsNullOrEmpty(license.Prioritized_software_release))
-                {
-                    Console.WriteLine($"Prioritized Software Release: {license.Prioritized_software_release}");
-                }
-                
-                if (swLimitation != null)
-                {
-                    Console.WriteLine($"Software Release Limitation ID: {license.Software_release_limitation_id ?? Guid.Empty}");
-                    
-                    if (!string.IsNullOrEmpty(swLimitation.Software_release))
-                    {
-                        Console.WriteLine($"Software Release: {swLimitation.Software_release}");
-                    }
-                    
-                    if (!string.IsNullOrEmpty(swLimitation.Description))
-                    {
-                        Console.WriteLine($"Description: {swLimitation.Description}");
-                    }
-                }
-            }
-
-            // License Status
-            Console.WriteLine($"\nLicense Status: {(isExpired ? "Expired" : "Active")}");
-
             // Features
             if (license.License_features != null && license.License_features.Count > 0)
             {
@@ -292,6 +226,75 @@ namespace Slascone.Provisioning.Sample.NuGet
             {
                 Console.WriteLine("\nMail Logs:");
                 Console.WriteLine($"Number of mail logs: {license.Mail_logs.Count}");
+            }
+
+            // Start date and expiration date information
+            Console.WriteLine("\nLicense Validity Status:");
+            Console.WriteLine("-----------------------");
+            Console.WriteLine($"\n===> License is {(license.Is_valid ? "valid" : "not valid")} <===\n");
+
+            // Date information and license validity
+            if (license.Is_valid && DateValidity.IsValid == license.Date_validity)
+            {
+                // Check if it's a "9999" perpetual license
+                if (license.Expiration_date_utc.Value.Year >= 9999)
+                {
+                    Console.WriteLine("This is a perpetual license.");
+                }
+                else
+                {
+                    long valid = (license.Expiration_date_utc.Value - DateTime.UtcNow).Days;
+                    Console.WriteLine($"License is valid for another {valid} day(s) until {license.Expiration_date_utc.Value.ToString(dateFormat)}.");
+                }
+            }
+            else
+            {
+                switch (license.Date_validity)
+                {
+                    case DateValidity.IsNotValidYet:
+                        Console.WriteLine(
+                            $"License is not valid yet.{(license.Start_date_utc.HasValue ? $" (Start Date: {license.Start_date_utc.Value.ToString(dateFormat)}" : "")}");
+                        break;
+
+                    case DateValidity.IsExpired:
+                        Console.WriteLine(license.Expiration_date_utc.HasValue
+                            ? $"License has expired.since {license.Expiration_date_utc.Value.ToString(dateFormat)}."
+                            : "License has expired.");
+                        break;
+                }
+            }
+
+            if (!license.Is_valid && !license.Is_active)
+            {
+                Console.WriteLine("License is deactivated.");
+            }
+
+            // Software version information
+            var swLimitation = license.Software_release_limitation;
+            if (swLimitation != null || !string.IsNullOrEmpty(license.Prioritized_software_release))
+            {
+                Console.WriteLine("\nSoftware Version Information:");
+                Console.WriteLine("----------------------------");
+
+                if (!string.IsNullOrEmpty(license.Prioritized_software_release))
+                {
+                    Console.WriteLine($"Prioritized Software Release: {license.Prioritized_software_release}");
+                }
+
+                if (swLimitation != null)
+                {
+                    Console.WriteLine($"Software Release Limitation ID: {license.Software_release_limitation_id ?? Guid.Empty}");
+
+                    if (!string.IsNullOrEmpty(swLimitation.Software_release))
+                    {
+                        Console.WriteLine($"Software Release: {swLimitation.Software_release}");
+                    }
+
+                    if (!string.IsNullOrEmpty(swLimitation.Description))
+                    {
+                        Console.WriteLine($"Description: {swLimitation.Description}");
+                    }
+                }
             }
 
             return limitationMap;
@@ -517,17 +520,6 @@ namespace Slascone.Provisioning.Sample.NuGet
             Console.WriteLine($"Is Temporary: {licenseInfo.Is_temporary}");
             Console.WriteLine($"Heartbeat Period: {licenseInfo.Heartbeat_period ?? 0} days");
 
-            if (licenseInfo.Session_period.HasValue && licenseInfo.Session_period.Value > 0)
-            {
-                Console.WriteLine($"Session Period: {licenseInfo.Session_period.Value} days");
-            }
-
-            // License validity status
-            Console.WriteLine("\nLicense Validity Status:");
-            Console.WriteLine("-----------------------");
-            Console.WriteLine($"License is {(licenseInfo.Is_license_valid ? "valid" : "not valid")} " +
-                              $"(IsActive: {licenseInfo.Is_license_active}; IsExpired: {licenseInfo.Is_license_expired})");
-
             // Date information and license validity
             string dateFormat = "yyyy-MM-dd HH:mm";
             if (licenseInfo.Created_date_utc.HasValue)
@@ -535,69 +527,14 @@ namespace Slascone.Provisioning.Sample.NuGet
                 Console.WriteLine($"Created Date: {licenseInfo.Created_date_utc.Value.ToString(dateFormat)}");
             }
 
-            if (licenseInfo.Expiration_date_utc.HasValue)
+            if (licenseInfo.Session_period is > 0)
             {
-                Console.WriteLine($"Expiration Date: {licenseInfo.Expiration_date_utc.Value.ToString(dateFormat)}");
-
-                // Check if it's a "9999" perpetual license
-                if (licenseInfo.Expiration_date_utc.Value.Year >= 9999)
-                {
-                    Console.WriteLine("This is a perpetual license.");
-                }
-                else if (licenseInfo.Is_license_expired)
-                {
-                    long expiration = (DateTime.UtcNow - licenseInfo.Expiration_date_utc.Value).Days;
-                    Console.WriteLine($"License is expired since {expiration} day(s).");
-
-                    // Check freeride
-                    if (licenseInfo.Freeride.HasValue && licenseInfo.Freeride.Value > 0)
-                    {
-                        if (expiration < licenseInfo.Freeride.Value)
-                        {
-                            Console.WriteLine($"Freeride granted for {licenseInfo.Freeride.Value} day(s).");
-                            Console.WriteLine($"License is still usable during freeride period (expires in {licenseInfo.Freeride.Value - expiration} day(s)).");
-                        }
-                        else
-                        {
-                            Console.WriteLine("Freeride period has expired. License is no longer valid.");
-                        }
-                    }
-                }
-                else
-                {
-                    long valid = (licenseInfo.Expiration_date_utc.Value - DateTime.UtcNow).Days;
-                    Console.WriteLine($"License is valid for another {valid} day(s) until {licenseInfo.Expiration_date_utc.Value.ToString(dateFormat)}.");
-
-                    // Show freeride information
-                    if (licenseInfo.Freeride.HasValue && licenseInfo.Freeride.Value > 0)
-                    {
-                        Console.WriteLine($"Freeride Period: {licenseInfo.Freeride.Value} day(s) after expiration");
-                    }
-                }
-            }
-            else
-            {
-                Console.WriteLine("License has no expiration date.");
+                Console.WriteLine($"Session Period: {licenseInfo.Session_period.Value} days");
             }
 
-            // Software version information
-            var swLimitation = licenseInfo.Software_release_limitation;
-            if (swLimitation != null)
+            if (licenseInfo.Freeride is > 0)
             {
-                Console.WriteLine("\nSoftware Version Information:");
-                Console.WriteLine("----------------------------");
-                Console.WriteLine($"Is Software Version Valid: {licenseInfo.Is_software_version_valid}");
-                Console.WriteLine($"Enforce Software Upgrade: {licenseInfo.Enforce_software_version_upgrade}");
-
-                if (!string.IsNullOrEmpty(swLimitation.Software_release))
-                {
-                    Console.WriteLine($"Software Release: {swLimitation.Software_release}");
-                }
-
-                if (!string.IsNullOrEmpty(swLimitation.Description))
-                {
-                    Console.WriteLine($"Description: {swLimitation.Description}");
-                }
+                Console.WriteLine($"Freeride granted for {licenseInfo.Freeride.Value} day(s).");
             }
 
             // Enumerate features
@@ -620,6 +557,7 @@ namespace Slascone.Provisioning.Sample.NuGet
             }
 
             // Enumerate limitations
+            Dictionary<Guid, (string, bool)> limitationMap;
             if (licenseInfo.Limitations != null && licenseInfo.Limitations.Count > 0)
             {
                 Console.WriteLine("\nLimitations:");
@@ -627,10 +565,16 @@ namespace Slascone.Provisioning.Sample.NuGet
                 {
                     Console.WriteLine($"- {limitation.Name ?? ""}: {(limitation.Value.HasValue ? limitation.Value.Value.ToString() : "unlimited")}");
                 }
+
+                // Create a dictionary of limitations
+                limitationMap = licenseInfo.Limitations?.ToDictionary(
+                                    l => l.Id,
+                                    l => ($"{l.Name} (max: {l.Value})", ConsumptionResetPeriod.Disabled != l.Consumption_reset_mode));
             }
             else
             {
                 Console.WriteLine("\nNo limitations available in this license.");
+                limitationMap = new Dictionary<Guid, (string Description, bool CanConsume)>();
             }
 
             // Enumerate variables if present
@@ -654,14 +598,69 @@ namespace Slascone.Provisioning.Sample.NuGet
                 Console.WriteLine($"Number of users: {licenseInfo.License_users.Count}");
             }
 
-            Console.WriteLine("\nLicense information successfully validated!");
+            // License validity status
+            Console.WriteLine("\nLicense Validity Status:");
+            Console.WriteLine("-----------------------");
+            Console.WriteLine($"\n===> License is {(licenseInfo.Is_license_valid ? "valid" : "not valid")} <===\n");
 
-            // Create a dictionary of limitations
-            var limitationMap =
-                licenseInfo.Limitations?.ToDictionary(
-                    l => l.Id, 
-                    l => ($"{l.Name} (max: {l.Value})", ConsumptionResetPeriod.Disabled !=  l.Consumption_reset_mode))
-                ?? new Dictionary<Guid, (string Description, bool CanConsume)>();
+            // Date information and license validity
+            if (licenseInfo.Is_license_valid && DateValidity.IsValid == licenseInfo.Date_validity)
+            {
+                // Check if it's a "9999" perpetual license
+                if (licenseInfo.Expiration_date_utc.Value.Year >= 9999)
+                {
+                    Console.WriteLine("This is a perpetual license.");
+                }
+                else
+                {
+                    long valid = (licenseInfo.Expiration_date_utc.Value - DateTime.UtcNow).Days;
+                    Console.WriteLine($"License is valid for another {valid} day(s) until {licenseInfo.Expiration_date_utc.Value.ToString(dateFormat)}.");
+                }
+            }
+            else
+            {
+                switch (licenseInfo.Date_validity)
+                {
+                    case DateValidity.IsNotValidYet:
+                        Console.WriteLine(
+                            $"License is not valid yet.{(licenseInfo.Start_date_utc.HasValue ? $" (Start Date: {licenseInfo.Start_date_utc.Value.ToString(dateFormat)}" : "")}");
+                        break;
+
+                    case DateValidity.IsExpired:
+                        Console.WriteLine(licenseInfo.Expiration_date_utc.HasValue
+                            ? $"License has expired.since {licenseInfo.Expiration_date_utc.Value.ToString(dateFormat)}."
+                            : "License has expired.");
+                        break;
+                }
+            }
+
+            if (!licenseInfo.Is_license_valid && !licenseInfo.Is_license_active)
+            {
+                Console.WriteLine("License is deactivated.");
+            }
+
+            // Software version information
+            var swLimitation = licenseInfo.Software_release_limitation;
+            if (swLimitation != null)
+            {
+                Console.WriteLine("\nSoftware Version Information:");
+                Console.WriteLine("----------------------------");
+                if (licenseInfo.Is_software_version_valid)
+                    Console.WriteLine("Software version is valid");
+                else
+                    Console.WriteLine("\n===> Software version is not valid <===\n");
+                Console.WriteLine($"Enforce Software Upgrade: {licenseInfo.Enforce_software_version_upgrade}");
+
+                if (!string.IsNullOrEmpty(swLimitation.Software_release))
+                {
+                    Console.WriteLine($"Software Release: {swLimitation.Software_release}");
+                }
+
+                if (!string.IsNullOrEmpty(swLimitation.Description))
+                {
+                    Console.WriteLine($"Description: {swLimitation.Description}");
+                }
+            }
 
             return limitationMap;
         }

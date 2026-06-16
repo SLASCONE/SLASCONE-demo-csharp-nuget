@@ -62,6 +62,7 @@ class Program
 		string input;
 		do
 		{
+            Console.WriteLine("-------------------------------------------------------------------------------------------------------------");
             Console.WriteLine("-- MAIN");
             Console.WriteLine("    1: Activate license (can be done only once per device)");
             Console.WriteLine("    2: Add license heartbeat (license check)");
@@ -188,7 +189,7 @@ class Program
         {
             // Check how old the stored license info is
             var licenseInfoAge = (DateTime.Now - licenseInfo.Created_date_utc.Value).Days;
-            Console.WriteLine($"   Offline license info is {licenseInfoAge} days old.");
+            Console.WriteLine($"\n   Offline license info is {licenseInfoAge} days old.");
 
             if (0 < licenseInfoAge && licenseInfo.Freeride.HasValue)
             {
@@ -359,7 +360,11 @@ class Program
 		    Console.WriteLine("Invalid file signature.");
 	    }
 
-	    return isValid;
+        var licenseInfo = SlasconeClientV2.ReadLicenseFile(licenseFile);
+        licenseInfo.Is_software_version_valid = SlasconeClientV2.IsReleaseCompliant(licenseInfo, Settings.SoftwareVersion);
+        LicensePrettyPrinter.PrintLicenseDetails(licenseInfo);
+
+        return isValid;
     }
 
     /// <summary>
