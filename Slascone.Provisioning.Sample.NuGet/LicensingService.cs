@@ -206,6 +206,7 @@ namespace Slascone.Provisioning.Sample.NuGet
                 _licenseKey = licenseInfoDto.License_key;
                 _tokenId = licenseInfoDto.Token_key;
                 _limitationMap = LicensePrettyPrinter.PrintLicenseDetails(licenseInfoDto);
+                ValidityCheck.CheckValidity(licenseInfoDto);
             }
             catch (Exception ex)
             {
@@ -628,6 +629,7 @@ namespace Slascone.Provisioning.Sample.NuGet
                 foreach (var licenseDto in licenseDtos)
                 {
                     LicensePrettyPrinter.PrintLicenseDetails(licenseDto);
+                    ValidityCheck.CheckValidity(licenseDto);
                 }
             }
             catch (Exception exception)

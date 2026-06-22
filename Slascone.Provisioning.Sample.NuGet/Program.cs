@@ -184,6 +184,7 @@ class Program
         var licenseInfo = response.Result;
 
         LicensePrettyPrinter.PrintLicenseDetails(licenseInfo);
+        ValidityCheck.CheckValidity(licenseInfo);
 
         if (licenseInfo.Created_date_utc.HasValue)
         {
@@ -363,6 +364,7 @@ class Program
         var licenseInfo = SlasconeClientV2.ReadLicenseFile(licenseFile);
         licenseInfo.Is_software_version_valid = SlasconeClientV2.IsReleaseCompliant(licenseInfo, Settings.SoftwareVersion);
         LicensePrettyPrinter.PrintLicenseDetails(licenseInfo);
+        isValid = ValidityCheck.CheckValidity(licenseInfo);
 
         return isValid;
     }
@@ -434,6 +436,7 @@ class Program
         {
             Console.WriteLine("Successful validation");
             LicensePrettyPrinter.PrintLicenseDetails(licenseInfo);
+            ValidityCheck.CheckValidity(licenseInfo);
         }
     }
 
