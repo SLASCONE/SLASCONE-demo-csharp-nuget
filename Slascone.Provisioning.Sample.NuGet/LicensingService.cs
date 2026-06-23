@@ -639,6 +639,37 @@ namespace Slascone.Provisioning.Sample.NuGet
         }
 
         /// <summary>
+        /// Validates the digital signature of a license file.
+        /// Uses the SLASCONE client to verify that the license file has not been tampered with.
+        /// </summary>
+        /// <param name="licenseFile">The path to the license file to validate.</param>
+        /// <returns>True if the signature is valid, false otherwise.</returns>
+        public bool IsLicenseFileSignatureValid(string licenseFile)
+        {
+            var isValid = false;
+            try
+            {
+                isValid = SlasconeClientV2.IsFileSignatureValid(licenseFile);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+
+            if (isValid)
+            {
+                Console.WriteLine("Successfully validated the file's signature.");
+            }
+            else
+            {
+                Console.WriteLine("Invalid file signature.");
+            }
+
+            return isValid;
+        }
+
+
+        /// <summary>
         /// Gets the SLASCONE client instance used by this service.
         /// </summary>
         public ISlasconeClientV2 SlasconeClientV2

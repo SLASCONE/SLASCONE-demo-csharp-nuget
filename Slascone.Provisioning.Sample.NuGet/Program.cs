@@ -77,13 +77,12 @@ class Program
             Console.WriteLine("    9: Find open session (temporary disconnection)");
             Console.WriteLine("    10: Close session");
             Console.WriteLine("-- OFFLINE ACTIVATION");
-            Console.WriteLine("    11: Validate license file (signature check)");
-            Console.WriteLine("    12: Validate license file and activation file");
+            Console.WriteLine("    11: Validate license file and activation file (including signature check)");
             Console.WriteLine("-- MISC");
-            Console.WriteLine("    13: Print client info");
-            Console.WriteLine("    14: Print virtualization/cloud environment info");
-            Console.WriteLine("    15: Print https chain of trust info");
-            Console.WriteLine("    16: Lookup licenses");
+            Console.WriteLine("    12: Print client info");
+            Console.WriteLine("    13: Print virtualization/cloud environment info");
+            Console.WriteLine("    14: Print https chain of trust info");
+            Console.WriteLine("    15: Lookup licenses");
             Console.WriteLine("x: Exit demo app");
 
             Console.Write("> ");
@@ -132,31 +131,27 @@ class Program
 					break;
 
 				case "11":
-					IsLicenseFileSignatureValid(Path.Combine("..", "..", "..", "Assets", _licenseFileXmlName));
-					break;
-
-				case "12":
 					OfflineLicenseActivationExample(
 						Path.Combine("..", "..", "..", "Assets", _licenseFileXmlName),
 						Path.Combine("..", "..", "..", "Assets", "ActivationFile.xml"));
 					break;
 
-				case "13":
+				case "12":
 					if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 						Console.Write(WindowsDeviceInfos.LogDeviceInfos());
 					if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 						Console.Write(LinuxDeviceInfos.LogDeviceInfos());
 					break;
 
-				case "14":
+				case "13":
 					Console.Write(DeviceInfoService.GetVirtualizationInfos());
 					break;
 
-                case "15":
+                case "14":
                     ChainOfTrustExample();
                     break;
 
-                case "16":
+                case "15":
                     await _licensingService.LookupLicensesAsync(_license_key);
                     break;
             }
@@ -335,41 +330,6 @@ class Program
     }
 
     /// <summary>
-    /// Validates the digital signature of a license file.
-    /// Uses the SLASCONE client to verify that the license file has not been tampered with.
-    /// </summary>
-    /// <param name="licenseFile">The path to the license file to validate.</param>
-    /// <returns>True if the signature is valid, false otherwise.</returns>
-    private bool IsLicenseFileSignatureValid(string licenseFile)
-    {
-	    var isValid = false;
-	    try
-	    {
-		    isValid = SlasconeClientV2.IsFileSignatureValid(licenseFile);
-		}
-	    catch (Exception ex)
-	    {
-		    Console.WriteLine(ex.ToString());
-	    }
-
-	    if (isValid)
-	    {
-		    Console.WriteLine("Successfully validated the file's signature.");
-	    }
-	    else
-	    {
-		    Console.WriteLine("Invalid file signature.");
-	    }
-
-        var licenseInfo = SlasconeClientV2.ReadLicenseFile(licenseFile);
-        licenseInfo.Is_software_version_valid = SlasconeClientV2.IsReleaseCompliant(licenseInfo, Settings.SoftwareVersion);
-        LicensePrettyPrinter.PrintLicenseDetails(licenseInfo);
-        isValid = ValidityCheck.CheckValidity(licenseInfo);
-
-        return isValid;
-    }
-
-    /// <summary>
     /// Demonstrates offline license activation with a license file and an activation file.
     /// Validates both files and checks if the license is properly activated for the current client.
     /// </summary>
@@ -403,7 +363,7 @@ class Program
             var activation = SlasconeClientV2.ReadActivationFile(activationFile);
 
             Console.Write("Validating the signature of the activation file: ");
-            var isValid = IsLicenseFileSignatureValid(activationFile);
+            var isValid = _licensingService.IsLicenseFileSignatureValid(activationFile);
 
             if (activation.License_key.Equals(licenseInfo.License_key))
             {
@@ -435,6 +395,7 @@ class Program
         if (isActivated)
         {
             Console.WriteLine("Successful validation");
+            licenseInfo.Is_software_version_valid = SlasconeClientV2.IsReleaseCompliant(licenseInfo, Settings.SoftwareVersion);
             LicensePrettyPrinter.PrintLicenseDetails(licenseInfo);
             ValidityCheck.CheckValidity(licenseInfo);
         }
