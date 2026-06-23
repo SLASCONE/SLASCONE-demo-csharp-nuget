@@ -76,7 +76,7 @@ class Program
             Console.WriteLine("    8: Open session");
             Console.WriteLine("    9: Find open session (temporary disconnection)");
             Console.WriteLine("    10: Close session");
-            Console.WriteLine("-- OFFLINE ACTIVATION");
+            Console.WriteLine("-- OFFLINE LICENSE AND ACTIVATION");
             Console.WriteLine("    11: Validate license file and activation file (including signature check)");
             Console.WriteLine("-- MISC");
             Console.WriteLine("    12: Print client info");
