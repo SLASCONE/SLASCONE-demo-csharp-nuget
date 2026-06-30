@@ -1,9 +1,10 @@
-﻿using Slascone.Client;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Slascone.Client;
 using Slascone.Client.DeviceInfos;
+using Slascone.Client.Interfaces;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
-using Slascone.Client.Interfaces;
 
 namespace Slascone.Provisioning.Sample.NuGet;
 
@@ -14,6 +15,7 @@ namespace Slascone.Provisioning.Sample.NuGet;
 class Program
 {
     private readonly LicensingService _licensingService;
+    private readonly ServiceProvider _serviceProvider;
 
     // This is a sample license key for demonstration purposes only.
     string _license_key = "27180460-29df-4a5a-a0a1-78c85ab6cee0";    // Find your own license key at : https://my.slascone.com/licenses
@@ -27,7 +29,15 @@ class Program
     /// </summary>
 	public Program()
 	{
-        _licensingService = new LicensingService();
+        var services = new ServiceCollection();
+
+        services.AddSingleton<LicensingService>();
+
+        services.AddHttpClient("Slascone.Client");
+
+        _serviceProvider = services.BuildServiceProvider();
+
+        _licensingService = _serviceProvider.GetRequiredService<LicensingService>();
     }
 
     /// <summary>
@@ -89,13 +99,13 @@ class Program
 			input = Console.ReadLine();
 
             switch (input)
-			{
-				case "1":
-					await _licensingService.ActivateLicenseAsync(_license_key);
-					break;
+            {
+                case "1":
+                    await _licensingService.ActivateLicenseAsync(_license_key);
+                    break;
 
-				case "2":
-					await _licensingService.AddHeartbeatAsync();
+                case "2":
+                    await _licensingService.AddHeartbeatAsync();
                     break;
 
                 case "3":
@@ -107,12 +117,12 @@ class Program
                     break;
 
                 case "5":
-					await AnalyticalHeartbeatExample();
-					break;
+                    await AnalyticalHeartbeatExample();
+                    break;
 
-				case "6":
-					await UsageHeartbeatExample();
-					break;
+                case "6":
+                    await UsageHeartbeatExample();
+                    break;
 
 				case "7":
 					await ConsumptionHeartbeatExample();
@@ -123,29 +133,29 @@ class Program
                     break;
 
                 case "9":
-					FindOpenSessionOffline();
-					break;
+                    FindOpenSessionOffline();
+                    break;
 
-				case "10":
+                case "10":
                     await _licensingService.CloseSessionAsync();
-					break;
+                    break;
 
-				case "11":
-					OfflineLicenseActivationExample(
-						Path.Combine("..", "..", "..", "Assets", _licenseFileXmlName),
-						Path.Combine("..", "..", "..", "Assets", "ActivationFile.xml"));
-					break;
+                case "11":
+                    OfflineLicenseActivationExample(
+                        Path.Combine("..", "..", "..", "Assets", _licenseFileXmlName),
+                        Path.Combine("..", "..", "..", "Assets", "ActivationFile.xml"));
+                    break;
 
-				case "12":
-					if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-						Console.Write(WindowsDeviceInfos.LogDeviceInfos());
-					if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-						Console.Write(LinuxDeviceInfos.LogDeviceInfos());
-					break;
+                case "12":
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                        Console.Write(WindowsDeviceInfos.LogDeviceInfos());
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                        Console.Write(LinuxDeviceInfos.LogDeviceInfos());
+                    break;
 
-				case "13":
-					Console.Write(DeviceInfoService.GetVirtualizationInfos());
-					break;
+                case "13":
+                    Console.Write(DeviceInfoService.GetVirtualizationInfos());
+                    break;
 
                 case "14":
                     ChainOfTrustExample();
@@ -155,7 +165,7 @@ class Program
                     await _licensingService.LookupLicensesAsync(_license_key);
                     break;
             }
-		} while (!"x".Equals(input, StringComparison.InvariantCultureIgnoreCase));
+        } while (!"x".Equals(input, StringComparison.InvariantCultureIgnoreCase));
 	}
 
     /// <summary>
