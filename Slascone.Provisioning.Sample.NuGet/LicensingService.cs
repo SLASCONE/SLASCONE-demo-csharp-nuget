@@ -28,10 +28,10 @@ namespace Slascone.Provisioning.Sample.NuGet
         /// Initializes a new instance of the LicensingService class.
         /// Configures the SLASCONE client with the appropriate settings for the environment.
         /// </summary>
-        public LicensingService()
+        public LicensingService(IHttpClientFactory httpClientFactory)
         {
             _slasconeClientV2 =
-                SlasconeClientV2Factory.BuildClient(Settings.ApiBaseUrl, Settings.IsvId, Settings.ProvisioningKey);
+                SlasconeClientV2Factory.BuildClient(Settings.ApiBaseUrl, Settings.IsvId, Settings.ProvisioningKey , httpClientFactory);
 
             // If you are using Azure AD B2C authentication you can set the bearer token for authorization against the SLASCONE RestAPI.
             // Set the bearer token including the 'Bearer' prefix.
