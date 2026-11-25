@@ -347,7 +347,7 @@ class Program
     /// <param name="activationFile">The path to the activation file.</param>
     private void OfflineLicenseActivationExample(string licenseFile, string activationFile)
     {
-        var licenseInfo = SlasconeClientV2.ReadLicenseFile(licenseFile);
+        var licenseInfo = SlasconeClientV2.ReadLicenseFile(licenseFile, out var revisionId);
 
         var offlineLicensingClientId = "24A43FCC-3674-0B19-A95F-047C160137E5";
 
@@ -394,6 +394,24 @@ class Program
             else
             {
                 Console.WriteLine("Activation client_id is invalid!");
+            }
+
+            // You have to compare the revision_id with the revision_id of the activation file!
+            // They have to match or both have to be null (not set)
+            if (null == activation.Revision_id && null == revisionId)
+            {
+                Console.WriteLine("Activation revision_id is valid (both are null)");
+                isActivated = true;
+            }
+            else if (revisionId == activation.Revision_id)
+            {
+                Console.WriteLine("Activation revision_id is valid");
+                isActivated = true;
+            }
+            else
+            {
+                Console.WriteLine("Activation revision_id is invalid!");
+                isActivated = false;
             }
 
             if (!isActivated)

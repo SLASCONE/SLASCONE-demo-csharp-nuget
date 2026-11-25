@@ -13,7 +13,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="11.0.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="11.0.0" />
-    <PackageReference Include="Slascone.Client" Version="2.2.69" />
+    <PackageReference Include="Slascone.Client" Version="2.2.205" />
     <PackageReference Include="System.Management" Version="11.0.0" />
     <PackageReference Include="System.Security.Cryptography.Pkcs" Version="11.0.0" />
     <PackageReference Include="System.Security.Cryptography.Xml" Version="11.0.0" />
